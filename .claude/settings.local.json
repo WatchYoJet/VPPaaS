@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"c:\\\\Users\\\\pedro\\\\Downloads\\\\VPPaaS\\\\ei-project-sprint-1\\\\ei-project-sprint-1\\\\microservices\" /ad /b)",
+      "Bash(xargs sed *)",
+      "PowerShell(head -40)"
+    ]
+  }
+}

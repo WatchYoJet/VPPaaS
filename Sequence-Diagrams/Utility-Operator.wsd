@@ -1,0 +1,10 @@
+title Utility Operator Management Business Process
+
+Camunda->Kong: CRUD Request
+Kong->Utility Service: Forward CRUD Request
+activate Utility Service
+Utility Service->Database: Read/Write Utility Operator data
+Database-->Utility Service: Result
+Utility Service-->Kong: Response
+deactivate Utility Service
+Kong-->Camunda: Forward Response

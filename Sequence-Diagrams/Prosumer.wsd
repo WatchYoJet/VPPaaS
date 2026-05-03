@@ -1,0 +1,10 @@
+title Prosumer Management Business Process
+
+Camunda->Kong: CRUD Request
+Kong->Prosumer Service: Forward CRUD Request
+activate Prosumer Service
+Prosumer Service->Database: Read/Write Prosumer data
+Database-->Prosumer Service: Result
+Prosumer Service-->Kong: Response
+deactivate Prosumer Service
+Kong-->Camunda: Forward Response

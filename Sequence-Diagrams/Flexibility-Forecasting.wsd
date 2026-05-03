@@ -1,0 +1,25 @@
+title Flexibility Forecasting AI Business Process
+
+Camunda->Kong: Request Flexibility Forecast
+Kong->Forecasting Service: Forward Request
+activate Forecasting Service
+
+Forecasting Service->Flexibility Event Service: Get past Flexibility Events
+activate Flexibility Event Service
+Flexibility Event Service->Database: Query past N hours of events
+Database-->Flexibility Event Service: FlexibilityEvents records
+Flexibility Event Service-->Forecasting Service: Response (events data)
+deactivate Flexibility Event Service
+
+note right of Forecasting Service: Build text summary\nof past flexibility events
+
+Forecasting Service->Ollama: POST /api/generate\n{model:"llama3.2", prompt:"Analyse VPP events...", stream:false}
+activate Ollama
+Ollama-->Forecasting Service: LLM assessment
+deactivate Ollama
+
+note right of Forecasting Service: No Kafka output —\nforecast is returned via REST only
+
+Forecasting Service-->Kong: Response (LLM assessment)
+deactivate Forecasting Service
+Kong-->Camunda: Forward Response (forecast result)

@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # JAVA path
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
-export PATH=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin:"$PATH"
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:"$PATH"
 
 # aws access variables 
-aws_access_key_id=
-aws_secret_access_key=
-aws_session_token=
+aws_access_key_id=ASIAV2ITSM5U6VGPFHB2
+aws_secret_access_key=qh2mEpbpQOXMilKe7F4tBr/upwk+/6W96I4H5o/v
+aws_session_token=IQoJb3JpZ2luX2VjEJD//////////wEaCXVzLXdlc3QtMiJHMEUCIQCCPs2JefC2w2mAqvewYT+TNQUF8GlCFx8jYpm97ATbiwIgOM9OcxFYzHlo0Q9A9wTJuYXy4+wc9U496gCdDuJnOYMqugIIWRABGgw0MDAwMDk4ODE0NDkiDK/oHXyIfs5k3tbVaSqXApo2qzTv58GT5950l2b5+bdLLoRM6++jsL0NjNe0+S/CW688s4wks3h8F0OyonqOB76ZA1x5XRWUA3EDAG13/BjJ4xj3dTWAMsg7vXKeDEBt+c0OQpB4jqAhKfnz3dxLM5Ue44DPKtZkFVHvqZYBPxA7cEYT1kRLGE96hwbjJwmudPbze6tA6HQSfa0Y1Qb3OTRCiIve1dWaZRvDOny+NveTx5Hv7YQWB+qmQuFoFCXqjLgEuoTeVtUcI4tcpqkXIGqq+NH+1dQJiGVTVloueDhSpCkyyFkHi3zTa5H7mlAzX3zju8iAMtyOG5fd/eigE+5AmFzWzEb2gJOmundTp8mjLo0qhRvY45gtHOrEiuyUSLlU6Oq1PDC43d3PBjqdAfSM8+9DYd6U7EEs5/QSnwOvTEDwZDXeg0hLhY3NACUmlu0Q/GbR1xJB5QaKa98LU3X/ZYlDi200brBMNCG9xxKLVJHuqLrEhzGfdQH+BcVy2w4+oJKEhEBxy90z/uqq0mbUgLB02XeP7b2sDspA//9LW0MqF2VzIULd6p69GSGzWP/c64Thxw8NXDSQq6i/1j9BAIhzCvWZ2KNc+ZY=
 
 # docker access variables
-yourDockerUsername=
-yourDockerPassword=
+yourDockerUsername=watchyojet
+yourDockerPassword=dckr_pat_Fi78bFUoqKyPyhyuibKbM5s6szU
 
 # exporting all variables to be used by next scripts
 export AWS_ACCESS_KEY_ID=$aws_access_key_id

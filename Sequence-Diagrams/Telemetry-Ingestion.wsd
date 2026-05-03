@@ -1,0 +1,15 @@
+title Telemetry Ingestion Business Process
+
+Simulator->Kafka: Publish Telemetry Event\n(topic: AssetLinkID-UtilityOperator)\nasset_type: BATTERY | SOLAR | EV_CHARGER
+
+Kafka->Telemetry Service: Consume record
+activate Telemetry Service
+note right of Telemetry Service: Parse asset_type\nExtract relevant fields\nSet non-applicable fields to NULL
+
+Telemetry Service->Database: INSERT INTO Telemetry\n(timeStamp, asset_id, asset_type, grid_cell_id, ...)
+activate Database
+Database-->Telemetry Service: OK
+deactivate Database
+
+Telemetry Service->Kafka: commitSync()
+deactivate Telemetry Service

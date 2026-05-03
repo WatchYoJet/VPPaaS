@@ -1,0 +1,24 @@
+title Flexibility Emission Business Process
+
+Camunda->Kong: Trigger Flexibility Analysis
+Kong->Flexibility Service: Forward Request
+activate Flexibility Service
+
+Flexibility Service->Telemetry Service: Get latest telemetry data
+activate Telemetry Service
+Telemetry Service->Database: Query latest telemetry readings
+Database-->Telemetry Service: Telemetry data
+Telemetry Service-->Flexibility Service: Response (telemetry data)
+deactivate Telemetry Service
+
+note right of Flexibility Service: Apply rules:\nsoc_percent > 90% AND peak hours → SELL\nsoc_percent < 20% → UNAVAILABLE\ngrid_frequency_hz < 49.8 Hz → EMERGENCY_DISCHARGE\nac_voltage_v > 253 V → OVERVOLTAGE_WARNING
+
+Flexibility Service->Database: INSERT INTO FlexibilityEvents\n(eventType, assetLinkId, gridCellId, incentiveValue, timestamp)
+Database-->Flexibility Service: OK
+
+Flexibility Service->Kafka: Publish Flexibility Event
+note right of Kafka: Topic = flexibility-offers
+
+Flexibility Service-->Kong: Response
+deactivate Flexibility Service
+Kong-->Camunda: Forward Response

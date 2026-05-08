@@ -4,16 +4,25 @@ Camunda->Kong: Trigger Grid Balancing Analysis
 Kong->Grid Service: Forward Request
 activate Grid Service
 
-Grid Service->Telemetry Service: Get Zone Telemetry Data
+Grid Service->Telemetry Service: Get latest telemetry data
 activate Telemetry Service
-Telemetry Service->Database: Query telemetry grouped by zone
-Database-->Telemetry Service: Zone data (SoC, capacity per zone)
+Telemetry Service->Database: Query latest telemetry grouped by zone
+Database-->Telemetry Service: Zone readings (SoC, power per asset)
 Telemetry Service-->Grid Service: Response
 deactivate Telemetry Service
 
-Grid Service->AssetLink Service: Get Active Links
+Grid Service->Utility Service: Get Grid Zone config
+activate Utility Service
+Utility Service->Database: Query GridZone\n(maxCapacity, boundaries)
+Database-->Utility Service: GridZone records
+Utility Service-->Grid Service: Response
+deactivate Utility Service
+
+Grid Service->AssetLink Service: Get active AssetLinks
 activate AssetLink Service
-AssetLink Service-->Grid Service: Active links list
+AssetLink Service->Database: Query active links
+Database-->AssetLink Service: AssetLink records
+AssetLink Service-->Grid Service: Response
 deactivate AssetLink Service
 
 note right of Grid Service: Detect deficit/surplus zones\nIf zone load > 80% maxCapacity:\nfind neighbouring zone with surplus

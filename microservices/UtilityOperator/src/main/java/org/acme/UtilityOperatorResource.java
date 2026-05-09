@@ -29,13 +29,14 @@ public class UtilityOperatorResource {
     }
     
     private void initdb() {
-        // In a production environment this configuration SHOULD NOT be used
-        client.query("DROP TABLE IF EXISTS UtilityOperator").execute()
+        client.query("DROP TABLE IF EXISTS GridZone").execute()
+        .flatMap(r -> client.query("DROP TABLE IF EXISTS UtilityOperator").execute())
         .flatMap(r -> client.query("CREATE TABLE UtilityOperator (id SERIAL PRIMARY KEY, name TEXT NOT NULL, location TEXT NOT NULL)").execute())
         .flatMap(r -> client.query("INSERT INTO UtilityOperator (name,location) VALUES ('ArcoCegoLisbon','Lisboa')").execute())
         .flatMap(r -> client.query("INSERT INTO UtilityOperator (name,location) VALUES ('PracadeBocage','Setubal')").execute())
         .flatMap(r -> client.query("INSERT INTO UtilityOperator (name,location) VALUES ('PracadaBoavista','Porto')").execute())
         .flatMap(r -> client.query("INSERT INTO UtilityOperator (name,location) VALUES ('PracaDomFranciscoGomes','Faro')").execute())
+        .flatMap(r -> client.query("CREATE TABLE GridZone (id SERIAL PRIMARY KEY, utilityOperatorId BIGINT UNSIGNED NOT NULL, name TEXT NOT NULL, maxCapacity DOUBLE NOT NULL, boundaries TEXT NOT NULL)").execute())
         .await().indefinitely();
     }
     

@@ -6,12 +6,12 @@ activate Forecasting Service
 
 Forecasting Service->Flexibility Event Service: Get past Flexibility Events
 activate Flexibility Event Service
-Flexibility Event Service->Database: Query past N hours of events
-Database-->Flexibility Event Service: FlexibilityEvents records
+Flexibility Event Service->Database: Query all FlexibilityEvents
+Database-->Flexibility Event Service: FlexibilityEvents records (returns all)
 Flexibility Event Service-->Forecasting Service: Response (events data)
 deactivate Flexibility Event Service
 
-note right of Forecasting Service: Build text summary\nof past flexibility events
+note right of Forecasting Service: Slice last 5 events\nBuild prompt text summary
 
 Forecasting Service->Ollama: POST /api/generate\n{model:"llama3.2", prompt:"Analyse VPP events...", stream:false}
 activate Ollama

@@ -1,17 +1,15 @@
 #!/bin/bash
-set -e  # stop on any error
+set -e
 
 source ./access.sh
 
 # ── helpers ────────────────────────────────────────────────────────────────
 
 CompileCode() {
-    # Patch application.properties with the real DB address and docker group
     sed -i "/quarkus.datasource.reactive.url/d" application.properties
     sed -i "/quarkus.container-image.group/d" application.properties
     echo "quarkus.container-image.group=$DockerUsername" >> application.properties
     echo "quarkus.datasource.reactive.url=mysql://$addressDB:3306/VPPaaS" >> application.properties
-    # Go up to the microservice root and build
     cd ../../..
     esc=$'\e'
     DockerImage="$(grep -m 1 "<artifactId>" pom.xml | sed "s/<artifactId>//g;s/<\/artifactId>//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g")"
@@ -29,74 +27,163 @@ DeployMicroservice() {
     echo "sudo docker run -d --name $DockerImage -p 8080:8080 $DockerUsername/$DockerImage:$DockerImageVersion" >> quarkus.sh
     terraform init
     terraform apply -replace="aws_instance.exampleDeployQuarkus" -auto-approve
-    cd ../..
+    cd ../../..
+}
+
+GetAddress() {
+    local tfdir=$1
+    cd terraform/Quarkus-Terraform/$tfdir
+    esc=$'\e'
+    addr="$(terraform state show aws_instance.exampleDeployQuarkus | grep public_dns | sed "s/public_dns//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g")"
+    cd ../../..
+    echo $addr
 }
 
 esc=$'\e'
 
 # ── 1. RDS ─────────────────────────────────────────────────────────────────
 echo ">>> Deploying RDS..."
-cd RDS-Terraform
+cd terraform/RDS-Terraform
 terraform init && terraform apply -auto-approve
 addressDB="$(terraform state show aws_db_instance.example | grep ' address' | sed "s/address//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g")"
 echo "RDS address: $addressDB"
-cd ..
+cd ../..
 
 # ── 2. Kafka ───────────────────────────────────────────────────────────────
 echo ">>> Deploying Kafka..."
-cd Kafka
+cd terraform/Kafka
 terraform init && terraform apply -auto-approve
 addresskafka="$(terraform state show 'aws_instance.exampleKafkaConfiguration[0]' | grep public_dns | sed "s/public_dns//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g")"
 echo "Kafka address: $addresskafka"
-cd ..
+cd ../..
 
-# ── 3. Telemetry (needs Kafka address baked in) ───────────────────────────
+# ── 3. Ollama ──────────────────────────────────────────────────────────────
+echo ">>> Deploying Ollama..."
+cd terraform/Ollama-Terraform
+terraform init && terraform apply -auto-approve
+addressOllama="$(terraform state show aws_instance.ollamaInstance | grep public_dns | sed "s/public_dns//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g")"
+echo "Ollama address: $addressOllama"
+cd ../..
+
+# ── 4. Telemetry ──────────────────────────────────────────────────────────
 echo ">>> Building & deploying Telemetry..."
 cd microservices/Telemetry/src/main/resources
 sed -i "/kafka.bootstrap.servers/d" application.properties
 echo "kafka.bootstrap.servers=$addresskafka:9092" >> application.properties
 CompileCode
-cd Quarkus-Terraform/telemetry
+cd terraform/Quarkus-Terraform/telemetry
 DeployMicroservice
+TELEMETRY_ADDRESS=$(GetAddress telemetry)
+echo "Telemetry address: $TELEMETRY_ADDRESS"
 
-# ── 4. AssetLink ───────────────────────────────────────────────────────────
+# ── 5. AssetLink ───────────────────────────────────────────────────────────
 echo ">>> Building & deploying AssetLink..."
 cd microservices/AssetLink/src/main/resources
+sed -i "/kafka.bootstrap.servers/d" application.properties
+echo "kafka.bootstrap.servers=$addresskafka:9092" >> application.properties
+sed -i "/telemetry.service.url/d" application.properties
+echo "telemetry.service.url=http://$TELEMETRY_ADDRESS:8080" >> application.properties
 CompileCode
-cd Quarkus-Terraform/assetlink
+cd terraform/Quarkus-Terraform/assetlink
 DeployMicroservice
+ASSETLINK_ADDRESS=$(GetAddress assetlink)
+echo "AssetLink address: $ASSETLINK_ADDRESS"
 
-# ── 5. Prosumer ────────────────────────────────────────────────────────────
+# ── 6. Prosumer ────────────────────────────────────────────────────────────
 echo ">>> Building & deploying Prosumer..."
 cd microservices/Prosumer/src/main/resources
 CompileCode
-cd Quarkus-Terraform/prosumer
+cd terraform/Quarkus-Terraform/prosumer
 DeployMicroservice
 
-# ── 6. UtilityOperator ────────────────────────────────────────────────────
+# ── 7. UtilityOperator ────────────────────────────────────────────────────
 echo ">>> Building & deploying UtilityOperator..."
 cd microservices/UtilityOperator/src/main/resources
 CompileCode
-cd Quarkus-Terraform/utilityoperator
+cd terraform/Quarkus-Terraform/utilityoperator
 DeployMicroservice
+UTILITYOPERATOR_ADDRESS=$(GetAddress utilityoperator)
+echo "UtilityOperator address: $UTILITYOPERATOR_ADDRESS"
+
+# ── 8. FlexibilityEvent ───────────────────────────────────────────────────
+echo ">>> Building & deploying FlexibilityEvent..."
+cd microservices/FlexibilityEvent/src/main/resources
+sed -i "/kafka.bootstrap.servers/d" application.properties
+echo "kafka.bootstrap.servers=$addresskafka:9092" >> application.properties
+sed -i "/telemetry.service.url/d" application.properties
+echo "telemetry.service.url=http://$TELEMETRY_ADDRESS:8080" >> application.properties
+CompileCode
+cd terraform/Quarkus-Terraform/flexibilityevent
+DeployMicroservice
+FLEXIBILITYEVENT_ADDRESS=$(GetAddress flexibilityevent)
+echo "FlexibilityEvent address: $FLEXIBILITYEVENT_ADDRESS"
+
+# ── 9. EnergyAnalytics ────────────────────────────────────────────────────
+echo ">>> Building & deploying EnergyAnalytics..."
+cd microservices/EnergyAnalytics/src/main/resources
+sed -i "/kafka.bootstrap.servers/d" application.properties
+echo "kafka.bootstrap.servers=$addresskafka:9092" >> application.properties
+sed -i "/telemetry.service.url/d" application.properties
+echo "telemetry.service.url=http://$TELEMETRY_ADDRESS:8080" >> application.properties
+CompileCode
+cd terraform/Quarkus-Terraform/energyanalytics
+DeployMicroservice
+
+# ── 10. GridBalancing ─────────────────────────────────────────────────────
+echo ">>> Building & deploying GridBalancing..."
+cd microservices/GridBalancing/src/main/resources
+sed -i "/kafka.bootstrap.servers/d" application.properties
+echo "kafka.bootstrap.servers=$addresskafka:9092" >> application.properties
+sed -i "/telemetry.service.url/d" application.properties
+echo "telemetry.service.url=http://$TELEMETRY_ADDRESS:8080" >> application.properties
+sed -i "/utilityoperator.service.url/d" application.properties
+echo "utilityoperator.service.url=http://$UTILITYOPERATOR_ADDRESS:8080" >> application.properties
+sed -i "/assetlink.service.url/d" application.properties
+echo "assetlink.service.url=http://$ASSETLINK_ADDRESS:8080" >> application.properties
+CompileCode
+cd terraform/Quarkus-Terraform/gridbalancing
+DeployMicroservice
+
+# ── 11. FlexibilityForecasting (on Ollama EC2) ────────────────────────────
+echo ">>> Building & deploying FlexibilityForecasting..."
+cd microservices/FlexibilityForecasting/src/main/resources
+sed -i "/flexibilityevent.service.url/d" application.properties
+echo "flexibilityevent.service.url=http://$FLEXIBILITYEVENT_ADDRESS:8080" >> application.properties
+CompileCode
+cd terraform/Ollama-Terraform
+sed -i "/sudo docker login/d" creation.sh
+sed -i "/sudo docker pull.*flexibilityforecasting/d" creation.sh
+sed -i "/sudo docker run.*flexibilityforecasting/d" creation.sh
+echo "sudo docker login -u \"$DockerUsername\" -p \"$DockerPassword\"" >> creation.sh
+echo "sudo docker pull $DockerUsername/flexibilityforecasting:1.0.0-SNAPSHOT" >> creation.sh
+echo "sudo docker run -d --name flexibilityforecasting --network=host $DockerUsername/flexibilityforecasting:1.0.0-SNAPSHOT" >> creation.sh
+terraform apply -replace="aws_instance.ollamaInstance" -auto-approve
+addressOllama="$(terraform state show aws_instance.ollamaInstance | grep public_dns | sed "s/public_dns//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g")"
+echo "FlexibilityForecasting address: http://$addressOllama:8080"
+cd ../..
 
 # ── Summary ────────────────────────────────────────────────────────────────
 echo ""
-echo "════════════════════════════════════════════════"
+echo "================================================"
 echo " SPRINT 1 DEPLOYMENT COMPLETE"
-echo "════════════════════════════════════════════════"
+echo "================================================"
 
-cd RDS-Terraform
+cd terraform/RDS-Terraform
 echo "RDS:             $(terraform state show aws_db_instance.example | grep ' address' | sed "s/address//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g"):3306"
-cd ..
+cd ../..
 
-cd Kafka
-echo "Kafka:           $addresskafka:9092"
-cd ..
+cd terraform/Kafka
+echo "Kafka:           $(terraform state show 'aws_instance.exampleKafkaConfiguration[0]' | grep public_dns | sed "s/public_dns//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g"):9092"
+cd ../..
 
-for svc in prosumer utilityoperator assetlink telemetry; do
-    cd Quarkus-Terraform/$svc
+cd terraform/Ollama-Terraform
+echo "Ollama:          $(terraform state show aws_instance.ollamaInstance | grep public_dns | sed "s/public_dns//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g"):11434"
+echo "flexibilityforecasting: http://$(terraform state show aws_instance.ollamaInstance | grep public_dns | sed "s/public_dns//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g"):8080/q/swagger-ui/"
+cd ../..
+
+for svc in prosumer utilityoperator assetlink telemetry flexibilityevent energyanalytics gridbalancing; do
+    cd terraform/Quarkus-Terraform/$svc
     addr="$(terraform state show aws_instance.exampleDeployQuarkus | grep public_dns | sed "s/public_dns//g;s/=//g;s/\"//g;s/ //g;s/$esc\[[0-9;]*m//g")"
-    echo "$svc: http://$addr:8080/q/swagger-ui/"
-    cd ../..
+    echo "$svc:        http://$addr:8080/q/swagger-ui/"
+    cd ../../..
 done

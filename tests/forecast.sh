@@ -1,11 +1,10 @@
 #!/bin/bash
 
-API_URL='http://<OLLAMA_EC2>:8080/FlexibilityForecasting'
+API_URL='http://ec2-23-22-105-201.compute-1.amazonaws.com:8080/FlexibilityForecasting'
 
 # Note: FlexibilityEvent data must exist (run flexibilityevent.sh first)
-# Note: First call may take 1-2 minutes (Ollama CPU inference with llama3.2)
 
-echo "Calling AI forecast endpoint (may take 1-2 minutes)..."
+echo "Calling AI forecast endpoint (may take some time)..."
 
 # Step 1: POST /forecast (reads last 5 flexibility events, sends to Ollama)
 response=$(curl -s -X POST "$API_URL/forecast" -H 'accept: application/json')

@@ -5,13 +5,13 @@ export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:"$PATH"
 
 # aws access variables 
-aws_access_key_id=ASIAV2ITSM5UULCHZH5J
-aws_secret_access_key=jwDyVXMUqF+gm/o4h2wFm7eTnXLgxwDHmxG/VSXJ
-aws_session_token=IQoJb3JpZ2luX2VjECIaCXVzLXdlc3QtMiJIMEYCIQDSc0eT2fETXsfyilyCCL1V3MBS0WprH8B9bleiQzu3rQIhALDb5e+vkLwVk6ytz5geEnEKyCLZ214Q4BGVObCvcbYgKsMCCOv//////////wEQARoMNDAwMDA5ODgxNDQ5IgzaQ9/h5CQTT9KI7LQqlwKy5lyni42v6dBuARcF/jrVK18xmSyIfn+SKf4uSHbeB1okA1TiP/sVAzEimHzmErHe2/Dvj3gfSFXrihJoIv60u0U3ykdhCfZ5/xYh2oJ7mGm0270U/OyUBWArg1zCTQKOtJVY6wYMtZKrwFakEUJx+q26XkNi3C8ymiP00u//zpnE1XW/sn9KtchBBiOchB9lSQb2qDUNdEl5kexPBbp0+6Wn2DTVIP6rl1GV1NEkO7ntCGp346QRb9j/MGXdE+F7+WMjwT4lupZGhkNLbT1zvX9uMPHrrp3nneznsnllTtun1TY36i+Th2+tu4ZE5XkfjWoX3yFqrOkReIbW2ki6u1WPHP+BNgNgLYJPQc9nttGCazY56vMw8u/9zwY6nAGUYFHOGfZTt8PnGk11ZIGnjGhJpi56Q4/Xk0x4YE7MQTRn0FZBgSl7hbDi2ya16RE9Zd4nqiq5OEIxnGKKJpjCoClTHwfu8Hc/2CKSWLkujoyNx/A/VsQAvcnEmaBMj5rgKHvOJ6exJBVLNn1vNOsXzmyqR4M/07ZheoxFrhyseI3crx2OD9bq23H9BBZu2brewFE8HMv2Ws0vbdk=
+aws_access_key_id=
+aws_secret_access_key=
+aws_session_token=
 
 # docker access variables
-yourDockerUsername=watchyojet
-yourDockerPassword=dckr_pat_Fi78bFUoqKyPyhyuibKbM5s6szU
+yourDockerUsername=
+yourDockerPassword=
 
 # exporting all variables to be used by next scripts
 export AWS_ACCESS_KEY_ID=$aws_access_key_id

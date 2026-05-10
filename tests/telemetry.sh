@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL='http://<TELEMETRY_EC2>:8080/Telemetry'
+API_URL='http://ec2-52-90-41-227.compute-1.amazonaws.com:8080/Telemetry'
 TOPIC='1-ArcoCegoLisbon'
 
 # Step 1: Register a Kafka consumer for the asset link topic
@@ -22,7 +22,7 @@ if [ -n "$id" ]; then
   echo "$response" | grep -q "\"id\":$id" || { echo "Test failed: telemetry not found by ID"; exit 1; }
 else
   echo "No telemetry events yet — run the EventProducer to populate data:"
-  echo "  java -jar VPPaaS-EventProducer/VPPaaSSimulator.jar --broker-list <KAFKA_EC2>:9092 --filterprefix 1 --throughput 1"
+  echo "  java -jar VPPaaS-EventProducer/VPPaaSSimulator.jar --broker-list ec2-18-208-163-145.compute-1.amazonaws.com:9092 --filterprefix 1 --throughput 1"
 fi
 
 echo "All tests passed successfully!"

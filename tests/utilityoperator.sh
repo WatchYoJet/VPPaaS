@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL='http://<UTILITYOPERATOR_EC2>:8080/UtilityOperator'
+API_URL='http://ec2-54-237-178-34.compute-1.amazonaws.com:8080/UtilityOperator'
 
 # Note: 4 utility operators are seeded on startup, list will not be empty
 

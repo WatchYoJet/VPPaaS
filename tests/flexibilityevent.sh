@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL='http://<FLEXIBILITYEVENT_EC2>:8080/FlexibilityEvent'
+API_URL='http://ec2-3-82-214-98.compute-1.amazonaws.com:8080/FlexibilityEvent'
 
 # Note: Telemetry data must exist before triggering (run telemetry.sh + EventProducer first)
 

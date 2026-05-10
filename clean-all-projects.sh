@@ -1,17 +1,7 @@
-find . -name ".terraform" -exec rm -r .terraform '{}' \;
+find . -type d -name ".terraform" -exec rm -rf '{}' +
 
-cd microservices/Telemetry	
-mvn clean
-cd ../..
-
-cd microservices/Prosumer	
-mvn clean
-cd ../..
-
-cd microservices/AssetLink	
-mvn clean
-cd ../..
-
-cd microservices/UtilityOperator
-mvn clean
-cd ../..
+for svc in Telemetry Prosumer AssetLink UtilityOperator FlexibilityEvent EnergyAnalytics GridBalancing FlexibilityForecasting; do
+    cd microservices/$svc
+    mvn clean
+    cd ../..
+done

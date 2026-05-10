@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL='http://<ENERGYANALYTICS_EC2>:8080/EnergyAnalytics'
+API_URL='http://ec2-34-230-37-40.compute-1.amazonaws.com:8080/EnergyAnalytics'
 
 # Note: Telemetry data must exist for analytics to produce results
 

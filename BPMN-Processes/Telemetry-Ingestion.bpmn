@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_TelemetryIngestion" targetNamespace="http://bpmn.io/schema/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:process id="TelemetryIngestion" name="Telemetry Monitor" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Every 5 Mins">
+      <bpmn:outgoing>Flow_0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_Kong" name="Fetch Status via Kong">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="http" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="method" value="GET" />
+          <zeebe:header key="url" value="http://kong-ip:8000/telemetry" />
+        </zeebe:taskHeaders>
+        <zeebe:ioMapping>
+          <zeebe:input source="= body" target="body" />
+          <zeebe:output source="= response.body" target="Task_Kong_response" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0</bpmn:incoming>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_1" name="Done">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0" sourceRef="StartEvent_1" targetRef="Task_Kong" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Task_Kong" targetRef="EndEvent_1" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="TelemetryIngestion">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="150" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Kong_di" bpmnElement="Task_Kong">
+        <dc:Bounds x="300" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="450" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0_di" bpmnElement="Flow_0">
+        <di:waypoint x="186" y="118" />
+        <di:waypoint x="300" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="400" y="118" />
+        <di:waypoint x="450" y="118" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

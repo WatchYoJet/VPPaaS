@@ -5,17 +5,18 @@
       <bpmn:outgoing>Flow_0</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:userTask id="Task_Review" name="Review Operator/Zone Data">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0</bpmn:incoming>
       <bpmn:outgoing>Flow_1</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:serviceTask id="Task_Kong_Operator" name="Update Operator via Kong">
       <bpmn:extensionElements>
-        <zeebe:taskDefinition type="http" />
-        <zeebe:taskHeaders>
-          <zeebe:header key="method" value="POST" />
-          <zeebe:header key="url" value="http://kong-ip:8000/utilityoperator" />
-        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
         <zeebe:ioMapping>
+          <zeebe:input source="= &quot;POST&quot;" target="method" />
+          <zeebe:input source="= &quot;http://kong-ip:8000/UtilityOperator&quot;" target="url" />
           <zeebe:input source="= body" target="body" />
           <zeebe:output source="= response.body" target="Task_Kong_Operator_response" />
         </zeebe:ioMapping>

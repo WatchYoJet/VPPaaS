@@ -55,10 +55,13 @@ public class Prosumer {
 	                .onItem().transform(iterator -> iterator.hasNext() ? from(iterator.next()) : null); 
 	    }
 	    
-	    public Uni<Boolean> save(MySQLPool client , String name_R, Long fnumber , String loc) 
+	    public Uni<Long> save(MySQLPool client , String name_R, Long fnumber , String loc)
 		{
-	        return client.preparedQuery("INSERT INTO Prosumer(name,FiscalNumber,location) VALUES (?,?,?)").execute(Tuple.of(name_R ,fnumber , loc))
-	        		.onItem().transform(pgRowSet -> pgRowSet.rowCount() == 1 ); 
+	        return client.preparedQuery("INSERT INTO Prosumer(name,FiscalNumber,location) VALUES (?,?,?)")
+	        		.execute(Tuple.of(name_R, fnumber, loc))
+	        		.onItem().transformToUni(ignored ->
+	        				client.query("SELECT LAST_INSERT_ID() AS id").execute()
+	        					.onItem().transform(rows -> rows.iterator().next().getLong("id")));
 	    }
 	    
 	    public static Uni<Boolean> delete(MySQLPool client, Long id_R) {

@@ -49,12 +49,12 @@ public class KafkaProvisioningResource {
                                                             + " Current_Output	FLOAT, "  
                                                             + " Max_Capacity	FLOAT, "  
                                                             + " State_of_Health	FLOAT, "  
-                                                            + " Status TEXT NOT NULL, " 
-                                                            + " Current_Generation FLOAT, " 
-                                                            + " Daily_Total FLOAT, " 
-                                                            + " Grid_Voltage FLOAT, " 
-                                                            + " Frequency FLOAT, " 
-                                                            + " Plug_Status TEXT NOT NULL, " 
+                                                            + " Status TEXT, "
+                                                            + " Current_Generation FLOAT, "
+                                                            + " Daily_Total FLOAT, "
+                                                            + " Grid_Voltage FLOAT, "
+                                                            + " Frequency FLOAT, "
+                                                            + " Plug_Status TEXT, "
                                                             + " Charging_Rate FLOAT, " 
                                                             + " Session_Energy FLOAT, " 
                                                             + " EV_SoC FLOAT)").execute())
@@ -64,7 +64,8 @@ public class KafkaProvisioningResource {
     @POST
     @Path("Consume")
     public String ProvisioningConsumer(Topic topic) {
-        Thread worker = new DynamicTopicConsumer(topic.TopicName , kafka_servers , client);
+        String servers = kafka_servers.contains("://") ? kafka_servers.replaceFirst("^[^/]+://", "") : kafka_servers;
+        Thread worker = new DynamicTopicConsumer(topic.TopicName, servers, client);
         worker.start();
         return "New worker started";
     }

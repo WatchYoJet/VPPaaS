@@ -5,6 +5,9 @@
       <bpmn:outgoing>Flow_0</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:userTask id="Task_KYC" name="Business Validation (KYC)">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0</bpmn:incoming>
       <bpmn:outgoing>Flow_1</bpmn:outgoing>
     </bpmn:userTask>
@@ -18,17 +21,15 @@
     </bpmn:endEvent>
     <bpmn:serviceTask id="Task_Kong" name="Technical Provisioning via Kong">
       <bpmn:extensionElements>
-        <zeebe:taskDefinition type="http" />
-        <zeebe:taskHeaders>
-          <zeebe:header key="method" value="POST" />
-          <zeebe:header key="url" value="http://kong-ip:8000/prosumer" />
-        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
         <zeebe:ioMapping>
+          <zeebe:input source="= &quot;POST&quot;" target="method" />
+          <zeebe:input source="= &quot;http://kong-ip:8000/Prosumer&quot;" target="url" />
           <zeebe:input source="= body" target="body" />
           <zeebe:output source="= response.body" target="Task_Kong_response" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:incoming>Flow_2_yes</bpmn:incoming>
       <bpmn:outgoing>Flow_3</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:endEvent id="EndEvent_1" name="Registered">

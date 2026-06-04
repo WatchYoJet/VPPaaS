@@ -36,6 +36,7 @@ public class DynamicTopicConsumer extends Thread  {
             properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
             properties.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
             properties.put("group.id", "your-group-id");
+            properties.put("auto.offset.reset", "earliest");
     
             try (Consumer<String, String> consumer = new KafkaConsumer<>(properties)) {
                 consumer.subscribe(Collections.singletonList(topic));
@@ -96,27 +97,27 @@ public class DynamicTopicConsumer extends Thread  {
                         }
                         
                         
-                        String query = 
-                        "INSERT INTO Telemetry (timeStamp , asset_id , asset_type , grid_cell_id , State_of_Charge , Available_Energy , Current_Output , Max_Capacity , State_of_Health , " 
-                        + " Status , Current_Generation , Daily_Total , Grid_Voltage , Frequency , Plug_Status , Charging_Rate , Session_Energy , EV_SoC) VALUES (" 
+                        String query =
+                        "INSERT INTO Telemetry (timeStamp , asset_id , asset_type , grid_cell_id , State_of_Charge , Available_Energy , Current_Output , Max_Capacity , State_of_Health , "
+                        + " Status , Current_Generation , Daily_Total , Grid_Voltage , Frequency , Plug_Status , Charging_Rate , Session_Energy , EV_SoC) VALUES ("
                         + "'" + timeStamp + "',"
                         + "'" + asset_id + "',"
                         + "'" + asset_type + "',"
                         + "'" + grid_cell_id + "',"
-                        + "'" + soc_percent + "',"
-                        + "'" + energy_available_kwh + "',"
-                        + "'" + active_power_kw + "',"
-                        + "'" + max_discharge_power_kw + "',"
-                        + "'" + soh_percent + "',"
-                        + "'" + connection_status  + "',"       
-                        + "'" + generation_kw + "',"
-                        + "'" + daily_yield_kwh + "',"
-                        + "'" + ac_voltage_v + "',"
-                        + "'" + grid_frequency_hz + "',"
-                        + "'" + connector_status + "',"
-                        + "'" + charging_power_kw + "',"
-                        + "'" + session_energy_kwh + "',"
-                        + "'" + ev_soc_percent + "'"        
+                        + f(soc_percent) + ","
+                        + f(energy_available_kwh) + ","
+                        + f(active_power_kw) + ","
+                        + f(max_discharge_power_kw) + ","
+                        + f(soh_percent) + ","
+                        + s(connection_status) + ","
+                        + f(generation_kw) + ","
+                        + f(daily_yield_kwh) + ","
+                        + f(ac_voltage_v) + ","
+                        + f(grid_frequency_hz) + ","
+                        + s(connector_status) + ","
+                        + f(charging_power_kw) + ","
+                        + f(session_energy_kwh) + ","
+                        + f(ev_soc_percent)
                         + ")";
 
                         client.query(query).execute().await().indefinitely();
@@ -124,7 +125,10 @@ public class DynamicTopicConsumer extends Thread  {
                 }
             }    
         }
-        catch (Exception e) 
+        catch (Exception e)
 		{  System.out.println("Exception is caught:" + e);  }
     }
+
+    private static String f(Float v) { return v == null ? "NULL" : String.valueOf(v); }
+    private static String s(String v) { return v == null ? "NULL" : "'" + v.replace("'", "''") + "'"; }
 }

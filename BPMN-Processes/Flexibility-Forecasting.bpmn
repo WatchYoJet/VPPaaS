@@ -6,12 +6,10 @@
     </bpmn:startEvent>
     <bpmn:serviceTask id="Task_Kong" name="Query LLM via Kong">
       <bpmn:extensionElements>
-        <zeebe:taskDefinition type="http" />
-        <zeebe:taskHeaders>
-          <zeebe:header key="method" value="POST" />
-          <zeebe:header key="url" value="http://kong-ip:8000/flexibilityforecasting/forecast" />
-        </zeebe:taskHeaders>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
         <zeebe:ioMapping>
+          <zeebe:input source="= &quot;POST&quot;" target="method" />
+          <zeebe:input source="= &quot;http://kong-ip:8000/FlexibilityForecasting/forecast&quot;" target="url" />
           <zeebe:input source="= body" target="body" />
           <zeebe:output source="= response.body" target="Task_Kong_response" />
         </zeebe:ioMapping>
@@ -20,6 +18,9 @@
       <bpmn:outgoing>Flow_1</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:userTask id="Task_Review" name="Review Forecast Results">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1</bpmn:incoming>
       <bpmn:outgoing>Flow_2</bpmn:outgoing>
     </bpmn:userTask>

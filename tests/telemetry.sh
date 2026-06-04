@@ -1,28 +1,38 @@
 #!/bin/bash
-
-API_URL='http://ec2-52-90-41-227.compute-1.amazonaws.com:8080/Telemetry'
+source "$(dirname "$0")/get-addresses.sh"
+API_URL="http://$GROUP_A:8082/Telemetry"
+KAFKA_BROKER=$(cd "$(dirname "$0")/../terraform/Kafka" && \
+  terraform state show 'aws_instance.exampleKafkaConfiguration[0]' -no-color 2>/dev/null \
+  | grep ' public_dns' | sed 's/.*=//;s/"//g;s/ //g'):9092
 TOPIC='1-ArcoCegoLisbon'
 
-# Step 1: Register a Kafka consumer for the asset link topic
 response=$(curl -s -X POST "$API_URL/Consume" \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d "{\"TopicName\":\"$TOPIC\"}")
 echo "POST /Consume (register Kafka consumer for $TOPIC): $response"
 
-# Step 2: GET all telemetry events
+echo "Starting simulator for 30 seconds..."
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+java -jar "$SCRIPT_DIR/VPPaaSSimulator.jar" \
+  --broker-list "$KAFKA_BROKER" \
+  --filterprefix 1 \
+  --throughput 2 &
+SIM_PID=$!
+sleep 30
+kill $SIM_PID 2>/dev/null
+
 response=$(curl -s -X GET "$API_URL" -H 'accept: application/json')
 echo "GET all telemetry events: $response"
 
-# Step 3: GET by ID if data exists
 id=$(echo "$response" | grep -oP '"id":\s*\K\d+' | head -1)
 if [ -n "$id" ]; then
   response=$(curl -s -X GET "$API_URL/$id" -H 'accept: application/json')
   echo "GET telemetry event by ID $id: $response"
   echo "$response" | grep -q "\"id\":$id" || { echo "Test failed: telemetry not found by ID"; exit 1; }
 else
-  echo "No telemetry events yet — run the EventProducer to populate data:"
-  echo "  java -jar VPPaaS-EventProducer/VPPaaSSimulator.jar --broker-list ec2-18-208-163-145.compute-1.amazonaws.com:9092 --filterprefix 1 --throughput 1"
+  echo "No telemetry events yet — simulator may need more time or Kafka brokers may still be starting"
+  exit 1
 fi
 
 echo "All tests passed successfully!"

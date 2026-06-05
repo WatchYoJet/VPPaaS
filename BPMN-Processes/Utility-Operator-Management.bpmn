@@ -1,60 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_UtilityOperatorManagement" targetNamespace="http://bpmn.io/schema/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <bpmn:process id="UtilityOperatorManagement" name="Utility Operator Management" isExecutable="true">
-    <bpmn:startEvent id="StartEvent_1" name="Management Request">
-      <bpmn:outgoing>Flow_0</bpmn:outgoing>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_UtilityOperatorMgmt" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.20.0">
+  <bpmn:collaboration id="Collaboration_UtilityOperatorMgmt">
+    <bpmn:participant id="Participant_UtilityOperator" name="UTILITY OPERATOR" processRef="UtilityOperatorManagement" />
+  </bpmn:collaboration>
+  <bpmn:process id="UtilityOperatorManagement" name="UtilityOperatorManagement" isExecutable="true" camunda:historyTimeToLive="180">
+    <bpmn:laneSet id="LaneSet_UO">
+      <bpmn:lane id="Lane_UO_Initiator" name="Initiator">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ChooseOperation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Operation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Creation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Deletion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Abort</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_ToChoose</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:userTask id="Task_Review" name="Review Operator/Zone Data">
-      <bpmn:incoming>Flow_0</bpmn:incoming>
-      <bpmn:outgoing>Flow_1</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:serviceTask id="Task_Kong_Operator" name="Update Operator via Kong">
+    <bpmn:userTask id="Task_ChooseOperation" name="Decide what operation to do in Utility Operator Management" camunda:assignee="demo">
       <bpmn:extensionElements>
-        <zeebe:taskDefinition type="http" />
-        <zeebe:taskHeaders>
-          <zeebe:header key="method" value="POST" />
-          <zeebe:header key="url" value="http://kong-ip:8000/utilityoperator" />
-        </zeebe:taskHeaders>
-        <zeebe:ioMapping>
-          <zeebe:input source="= body" target="body" />
-          <zeebe:output source="= response.body" target="Task_Kong_Operator_response" />
-        </zeebe:ioMapping>
+        <camunda:formData>
+          <camunda:formField id="Operation" label="Operation" type="enum">
+            <camunda:validation />
+            <camunda:value id="CREATE" name="CREATE" />
+            <camunda:value id="DELETE" name="DELETE" />
+            <camunda:value id="ABORT" name="ABORT" />
+          </camunda:formField>
+        </camunda:formData>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_2</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:endEvent id="EndEvent_1" name="Completed">
-      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:incoming>Flow_ToChoose</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGateway</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_Operation" name="Choose Operation">
+      <bpmn:incoming>Flow_ToGateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_Create</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Delete</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Abort</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Creation" name="Call Utility Operator Creation Subprocess" calledElement="UtilityOperatorCreation">
+      <bpmn:extensionElements>
+        <camunda:in businessKey="${execution.processBusinessKey}" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Create</bpmn:incoming>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Deletion" name="Call Utility Operator Deletion Subprocess" calledElement="UtilityOperatorDeletion">
+      <bpmn:extensionElements>
+        <camunda:in businessKey="${execution.processBusinessKey}" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Delete</bpmn:incoming>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="EndEvent_Abort">
+      <bpmn:incoming>Flow_Abort</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_0" sourceRef="StartEvent_1" targetRef="Task_Review" />
-    <bpmn:sequenceFlow id="Flow_1" sourceRef="Task_Review" targetRef="Task_Kong_Operator" />
-    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Kong_Operator" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="Flow_ToChoose" sourceRef="StartEvent_1" targetRef="Task_ChooseOperation" />
+    <bpmn:sequenceFlow id="Flow_ToGateway" sourceRef="Task_ChooseOperation" targetRef="Gateway_Operation" />
+    <bpmn:sequenceFlow id="Flow_Create" name="Create Utility Operator" sourceRef="Gateway_Operation" targetRef="Call_Creation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${Operation == "CREATE"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Delete" name="Delete Utility Operator" sourceRef="Gateway_Operation" targetRef="Call_Deletion">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${Operation == "DELETE"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Abort" name="Abort process" sourceRef="Gateway_Operation" targetRef="EndEvent_Abort">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${Operation == "ABORT"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="UtilityOperatorManagement">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_UtilityOperatorMgmt">
+      <bpmndi:BPMNShape id="Participant_UtilityOperator_di" bpmnElement="Participant_UtilityOperator" isHorizontal="true">
+        <dc:Bounds x="132" y="55" width="968" height="365" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_UO_Initiator_di" bpmnElement="Lane_UO_Initiator" isHorizontal="true">
+        <dc:Bounds x="162" y="55" width="938" height="365" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
-        <dc:Bounds x="150" y="100" width="36" height="36" />
+        <dc:Bounds x="202" y="222" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
-        <dc:Bounds x="300" y="78" width="100" height="80" />
+      <bpmndi:BPMNShape id="Task_ChooseOperation_di" bpmnElement="Task_ChooseOperation">
+        <dc:Bounds x="280" y="200" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_Kong_Operator_di" bpmnElement="Task_Kong_Operator">
-        <dc:Bounds x="450" y="78" width="100" height="80" />
+      <bpmndi:BPMNShape id="Gateway_Operation_di" bpmnElement="Gateway_Operation" isMarkerVisible="true">
+        <dc:Bounds x="505" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="425" y="203" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
-        <dc:Bounds x="600" y="100" width="36" height="36" />
+      <bpmndi:BPMNShape id="Call_Creation_di" bpmnElement="Call_Creation">
+        <dc:Bounds x="670" y="200" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_0_di" bpmnElement="Flow_0">
-        <di:waypoint x="186" y="118" />
-        <di:waypoint x="300" y="118" />
+      <bpmndi:BPMNShape id="Call_Deletion_di" bpmnElement="Call_Deletion">
+        <dc:Bounds x="480" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Abort_di" bpmnElement="EndEvent_Abort">
+        <dc:Bounds x="512" y="332" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToChoose_di" bpmnElement="Flow_ToChoose">
+        <di:waypoint x="238" y="240" />
+        <di:waypoint x="280" y="240" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
-        <di:waypoint x="400" y="118" />
-        <di:waypoint x="450" y="118" />
+      <bpmndi:BPMNEdge id="Flow_ToGateway_di" bpmnElement="Flow_ToGateway">
+        <di:waypoint x="380" y="240" />
+        <di:waypoint x="505" y="240" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
-        <di:waypoint x="550" y="118" />
-        <di:waypoint x="600" y="118" />
+      <bpmndi:BPMNEdge id="Flow_Create_di" bpmnElement="Flow_Create">
+        <di:waypoint x="555" y="240" />
+        <di:waypoint x="670" y="240" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="565" y="222" width="100" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Delete_di" bpmnElement="Flow_Delete">
+        <di:waypoint x="530" y="215" />
+        <di:waypoint x="530" y="150" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="430" y="163" width="100" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Abort_di" bpmnElement="Flow_Abort">
+        <di:waypoint x="530" y="265" />
+        <di:waypoint x="530" y="332" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="456" y="283" width="68" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

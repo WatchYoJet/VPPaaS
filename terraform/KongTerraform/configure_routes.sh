@@ -4,7 +4,7 @@ echo "=================================================="
 echo "    Kong API Gateway Configuration Script         "
 echo "=================================================="
 
-# 1. Definir os URLs (O utilizador pode mudar isto ou exportar como variáveis de ambiente)
+
 KONG_ADMIN_URL=${KONG_ADMIN_URL:-"http://localhost:8001"}
 
 # Substituir <IP> pelos IPs reais gerados pelo Terraform

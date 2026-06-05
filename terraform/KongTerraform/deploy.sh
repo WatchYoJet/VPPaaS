@@ -45,4 +45,9 @@ sudo docker run -d --name kong-gateway \
 -p 127.0.0.1:8444:8444 \
 kong/kong-gateway:3.9.0.0
 
+sudo docker run -d --name konga \
+  --network=kong-net \
+  -p 1337:1337 \
+  pantsel/konga
+
 echo "Finished."

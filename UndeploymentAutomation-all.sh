@@ -1,32 +1,15 @@
 #!/bin/bash
-
 source ./access.sh
 
-cd terraform/Quarkus-Terraform/gridbalancing
+cd terraform/Quarkus-Terraform/group-c
 terraform init && terraform destroy -auto-approve
 cd ../../..
 
-cd terraform/Quarkus-Terraform/energyanalytics
+cd terraform/Quarkus-Terraform/group-b
 terraform init && terraform destroy -auto-approve
 cd ../../..
 
-cd terraform/Quarkus-Terraform/flexibilityevent
-terraform init && terraform destroy -auto-approve
-cd ../../..
-
-cd terraform/Quarkus-Terraform/utilityoperator
-terraform init && terraform destroy -auto-approve
-cd ../../..
-
-cd terraform/Quarkus-Terraform/prosumer
-terraform init && terraform destroy -auto-approve
-cd ../../..
-
-cd terraform/Quarkus-Terraform/assetlink
-terraform init && terraform destroy -auto-approve
-cd ../../..
-
-cd terraform/Quarkus-Terraform/telemetry
+cd terraform/Quarkus-Terraform/group-a
 terraform init && terraform destroy -auto-approve
 cd ../../..
 
@@ -43,10 +26,6 @@ terraform init && terraform destroy -auto-approve
 cd ../..
 
 cd terraform/KongTerraform
-terraform init && terraform destroy -auto-approve
-cd ../..
-
-cd terraform/KongaTerraform
 terraform init && terraform destroy -auto-approve
 cd ../..
 

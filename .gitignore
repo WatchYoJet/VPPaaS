@@ -1,0 +1,20 @@
+# Terraform state (contains live infrastructure details)
+*.tfstate
+*.tfstate.backup
+
+# Terraform provider cache (large binaries, re-downloaded by terraform init)
+**/.terraform/
+
+# Credentials / secrets
+access.sh
+
+# macOS
+.DS_Store
+
+# Java build artifacts
+target/
+*.class
+*.jar
+!tests/VPPaaSSimulator.jar
+labsuser.pem
+access.sh

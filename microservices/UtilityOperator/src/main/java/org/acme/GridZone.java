@@ -59,9 +59,12 @@ public class GridZone {
                 .onItem().transform(GridZone::from);
     }
 
-    public Uni<Boolean> save(MySQLPool client) {
-        return client.preparedQuery("INSERT INTO GridZone(utilityOperatorId, name, maxCapacity, boundaries) VALUES (?,?,?,?)").execute(Tuple.of(utilityOperatorId, name, maxCapacity, boundaries))
-                .onItem().transform(r -> r.rowCount() == 1);
+    public Uni<Long> save(MySQLPool client) {
+        return client.preparedQuery("INSERT INTO GridZone(utilityOperatorId, name, maxCapacity, boundaries) VALUES (?,?,?,?)")
+                .execute(Tuple.of(utilityOperatorId, name, maxCapacity, boundaries))
+                .onItem().transformToUni(ignored ->
+                        client.query("SELECT LAST_INSERT_ID() AS id").execute()
+                            .onItem().transform(rows -> rows.iterator().next().getLong("id")));
     }
 
     public static Uni<Boolean> update(MySQLPool client, Long id, Double maxCapacity, String boundaries) {

@@ -46,7 +46,7 @@ create_service_and_route() {
   HTTP_CODE=$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" -X POST "$KONG_ADMIN_URL/services/$SERVICE_NAME/routes" \
     --data name="${SERVICE_NAME}-route" \
     --data paths[]="$ROUTE_PATH" \
-    --data strip_path=true)
+    --data strip_path=false)
     
   if [ "$HTTP_CODE" -ne 201 ]; then
       echo "Error creating Route"
@@ -56,14 +56,14 @@ create_service_and_route() {
 }
 
 # Configurar todos os 8 Microserviços
-create_service_and_route "prosumer-service" "$PROSUMER_URL" "/prosumer"
-create_service_and_route "utilityoperator-service" "$UTILITY_URL" "/utilityoperator"
-create_service_and_route "assetlink-service" "$ASSETLINK_URL" "/assetlink"
-create_service_and_route "telemetry-service" "$TELEMETRY_URL" "/telemetry"
-create_service_and_route "flexibilityevent-service" "$FLEXIBILITY_URL" "/flexibilityevent"
-create_service_and_route "gridbalancing-service" "$GRIDBALANCING_URL" "/gridbalancing"
-create_service_and_route "energyanalytics-service" "$ENERGYANALYTICS_URL" "/energyanalytics"
-create_service_and_route "flexibilityforecasting-service" "$FORECASTING_URL" "/flexibilityforecasting"
+create_service_and_route "prosumer-service"             "$PROSUMER_URL"        "/Prosumer"
+create_service_and_route "utilityoperator-service"      "$UTILITY_URL"         "/UtilityOperator"
+create_service_and_route "assetlink-service"            "$ASSETLINK_URL"       "/AssetLink"
+create_service_and_route "telemetry-service"            "$TELEMETRY_URL"       "/Telemetry"
+create_service_and_route "flexibilityevent-service"     "$FLEXIBILITY_URL"     "/FlexibilityEvent"
+create_service_and_route "gridbalancing-service"        "$GRIDBALANCING_URL"   "/GridBalancing"
+create_service_and_route "energyanalytics-service"      "$ENERGYANALYTICS_URL" "/EnergyAnalytics"
+create_service_and_route "flexibilityforecasting-service" "$FORECASTING_URL"   "/FlexibilityForecasting"
 
 echo "--------------------------------------------------"
 echo "Done! The API Gateway is now configured."

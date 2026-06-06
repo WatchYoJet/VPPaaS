@@ -1,0 +1,32 @@
+title Utility Operator Creation Business Process
+
+actor "Utility Operator" as UO
+participant Camunda
+participant VPPaaS
+participant Kong
+participant "Utility Operator Service" as Service
+
+UO->Camunda: Fill registration data\n(name, fiscalNumber, address, postalCode)
+Camunda->VPPaaS: Request Utility Operator Registration
+activate VPPaaS
+VPPaaS->VPPaaS: Verify if registration is possible\n(promise: true/false)
+
+alt promise = true
+  VPPaaS-->Camunda: Promise
+  VPPaaS->Kong: POST /UtilityOperator
+  Kong->Service: Forward Create Request
+  activate Service
+  Service->Database: INSERT UtilityOperator data
+  Database-->Service: OK (returns utilityOperatorID)
+  Service-->Kong: Response (utilityOperatorID)
+  deactivate Service
+  Kong-->VPPaaS: Response
+  VPPaaS-->Camunda: Declare (utilityOperatorID)
+  Camunda->UO: Check Registration order\n(utilityOperatorID confirmed)
+  UO->Camunda: Accept
+  Camunda-->VPPaaS: Accept
+else promise = false
+  VPPaaS-->Camunda: Decline
+  Camunda->UO: Decide what to do next\n(retry or abort)
+end
+deactivate VPPaaS

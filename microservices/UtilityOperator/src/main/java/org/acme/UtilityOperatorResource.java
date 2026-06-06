@@ -36,7 +36,7 @@ public class UtilityOperatorResource {
         .flatMap(r -> client.query("INSERT INTO UtilityOperator (name,location) VALUES ('PracadeBocage','Setubal')").execute())
         .flatMap(r -> client.query("INSERT INTO UtilityOperator (name,location) VALUES ('PracadaBoavista','Porto')").execute())
         .flatMap(r -> client.query("INSERT INTO UtilityOperator (name,location) VALUES ('PracaDomFranciscoGomes','Faro')").execute())
-        .flatMap(r -> client.query("CREATE TABLE GridZone (id SERIAL PRIMARY KEY, utilityOperatorId BIGINT UNSIGNED NOT NULL, name TEXT NOT NULL, maxCapacity DOUBLE NOT NULL, boundaries TEXT NOT NULL)").execute())
+        .flatMap(r -> client.query("CREATE TABLE GridZone (id SERIAL PRIMARY KEY, utilityOperatorId BIGINT UNSIGNED NOT NULL, name TEXT NOT NULL, maxCapacity DOUBLE NOT NULL, boundaries TEXT NOT NULL, safetyThreshold DOUBLE, postalCode TEXT)").execute())
         .await().indefinitely();
     }
     

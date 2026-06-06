@@ -4,29 +4,22 @@
 #   Start → KYC user task → approve → service task → prosumer created in DB
 #
 # Usage: bash tests/bpmn_test.sh [camunda-host]
-#   camunda-host defaults to Terraform state if not given
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$SCRIPT_DIR/.."
 
-# ── Resolve Camunda + Kong addresses ─────────────────────────────────────────
-CAMUNDA="${1:-}"
+source "$SCRIPT_DIR/get-addresses.sh"
+
+CAMUNDA="${1:-$CAMUNDA_DNS}"
 if [ -z "$CAMUNDA" ]; then
-  CAMUNDA=$(terraform -chdir="$ROOT/terraform/Camunda-Terraform" \
-    state show aws_instance.exampleInstallCamundaEngine -no-color 2>/dev/null \
-    | grep ' public_dns' | sed 's/.*=//;s/"//g;s/ //g')
-fi
-if [ -z "$CAMUNDA" ]; then
-  echo "[ERROR] Could not resolve Camunda address. Pass it as argument: bash bpmn_test.sh <host>" >&2
+  echo "[ERROR] Could not resolve Camunda address. Pass it as argument or run Deploy.sh first." >&2
   exit 1
 fi
 
-KONG=$(terraform -chdir="$ROOT/terraform/KongTerraform" \
-  state show aws_instance.exampleInstallKong -no-color 2>/dev/null \
-  | grep ' public_dns' | sed 's/.*=//;s/"//g;s/ //g')
+KONG="$KONG_DNS"
 if [ -z "$KONG" ]; then
-  echo "[ERROR] Could not resolve Kong address from Terraform state." >&2
+  echo "[ERROR] Could not resolve Kong address from addresses env." >&2
   exit 1
 fi
 
@@ -37,7 +30,7 @@ echo ""
 CAMUNDA_API="http://$CAMUNDA:8080"
 AUTH="-u demo:demo"
 
-# ── Step 1: Deploy all 8 BPMN processes ──────────────────────────────────────
+# ── Step 1: Deploy all BPMN processes ────────────────────────────────────────
 echo "================================================"
 echo " Deploying BPMN processes to Camunda"
 echo "================================================"
@@ -69,7 +62,7 @@ if [ "$FAIL" -gt 0 ]; then
   exit 1
 fi
 
-# ── Step 2: Resolve ProsumerManagement process definition key ─────────────────
+# ── Step 2: Find ProsumerManagement process definition key ────────────────────
 echo "================================================"
 echo " Finding ProsumerManagement process definition"
 echo "================================================"
@@ -80,7 +73,7 @@ PROC_KEY=$(curl -s $AUTH "$CAMUNDA_API/v2/process-definitions/search" \
   | python3 -c "import sys,json; items=json.load(sys.stdin).get('items',[]); print(items[0]['processDefinitionKey'] if items else '')" 2>/dev/null)
 
 if [ -z "$PROC_KEY" ]; then
-  echo "[ERROR] Could not find ProsumerManagement process definition. Was deployment successful?" >&2
+  echo "[ERROR] Could not find ProsumerManagement process definition." >&2
   exit 1
 fi
 echo "  Process definition key: $PROC_KEY"
@@ -122,7 +115,6 @@ echo "================================================"
 
 TASK_KEY=""
 for i in $(seq 1 20); do
-  # Zeebe v2 user task API — works with <zeebe:userTask> extension in BPMN
   TASK_KEY=$(curl -s $AUTH \
     -X POST "$CAMUNDA_API/v2/user-tasks/search" \
     -H "Content-Type: application/json" \
@@ -162,18 +154,13 @@ else
 fi
 echo ""
 
-# ── Step 5: Wait for process to finish + verify via Kong ──────────────────────
+# ── Step 5: Wait for service task + verify via Prosumer service ───────────────
 echo "================================================"
-echo " Waiting for service task to execute via Kong"
+echo " Waiting for service task to execute"
 echo "================================================"
 sleep 10
 
-SOURCE_URL=$(terraform -chdir="$ROOT/terraform/Quarkus-Terraform/group-a" \
-  state show aws_instance.exampleDeployQuarkus -no-color 2>/dev/null \
-  | grep ' public_dns' | sed 's/.*=//;s/"//g;s/ //g')
-PROSUMER_URL="http://${SOURCE_URL:-$KONG}:8080"
-
-PROSUMERS=$(curl -s "$PROSUMER_URL/Prosumer" 2>/dev/null || echo "[]")
+PROSUMERS=$(curl -s "http://$PROSUMER_DNS:8080/Prosumer" 2>/dev/null || echo "[]")
 COUNT=$(echo "$PROSUMERS" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
 
 if [ "$COUNT" -gt 0 ]; then
@@ -188,5 +175,5 @@ echo "================================================"
 echo " Camunda dashboards:"
 echo "  Operate:  http://$CAMUNDA:8081  (login: demo / demo)"
 echo "  Tasklist: http://$CAMUNDA:8082  (login: demo / demo)"
-echo "  Kong Manager: http://$KONG:8002"
+echo "  Kong proxy: http://$KONG:8000"
 echo "================================================"

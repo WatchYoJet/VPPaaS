@@ -1,6 +1,7 @@
 title Energy Analytics Business Process
 
-Camunda->Kong: Trigger Analytics Computation
+VPPaaS->Camunda: Trigger Analytics Computation
+Camunda->Kong: Forward Request
 Kong->Analytics Service: Forward Request
 activate Analytics Service
 
@@ -24,3 +25,4 @@ Analytics Service->Kafka: Publish — average-soc
 Analytics Service-->Kong: Response
 deactivate Analytics Service
 Kong-->Camunda: Forward Response
+Camunda-->VPPaaS: Forward Response

@@ -20,4 +20,4 @@ sudo service docker start
 sudo usermod -a -G docker ec2-user
 sudo docker login -u "watchyojet" -p "dckr_pat_Fi78bFUoqKyPyhyuibKbM5s6szU"
 sudo docker pull watchyojet/flexibilityforecasting:1.0.0-SNAPSHOT
-sudo docker run -d --name flexibilityforecasting --network=host -e FLEXIBILITYEVENT_SERVICE_URL="http://ec2-44-223-40-47.compute-1.amazonaws.com:8081" watchyojet/flexibilityforecasting:1.0.0-SNAPSHOT
+sudo docker run -d --name flexibilityforecasting --network=host -e FLEXIBILITYEVENT_SERVICE_URL="http://ec2-34-231-110-252.compute-1.amazonaws.com:8081" watchyojet/flexibilityforecasting:1.0.0-SNAPSHOT

@@ -1,6 +1,7 @@
 title Flexibility Forecasting AI Business Process
 
-Camunda->Kong: Request Flexibility Forecast
+VPPaaS->Camunda: Request Flexibility Forecast
+Camunda->Kong: Forward Request
 Kong->Forecasting Service: Forward Request
 activate Forecasting Service
 
@@ -18,8 +19,9 @@ activate Ollama
 Ollama-->Forecasting Service: LLM assessment
 deactivate Ollama
 
-note right of Forecasting Service: No Kafka output —\nforecast is returned via REST only
+note right of Forecasting Service: No Kafka output \nforecast is returned via REST only
 
 Forecasting Service-->Kong: Response (LLM assessment)
 deactivate Forecasting Service
 Kong-->Camunda: Forward Response (forecast result)
+Camunda-->VPPaaS: Forward Response (forecast result)

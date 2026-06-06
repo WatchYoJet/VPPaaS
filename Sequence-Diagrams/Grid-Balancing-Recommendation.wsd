@@ -1,6 +1,7 @@
 title Grid Balancing Recommendation Business Process
 
-Camunda->Kong: Trigger Grid Balancing Analysis
+VPPaaS->Camunda: Trigger Grid Balancing Analysis
+Camunda->Kong: Forward Request
 Kong->Grid Service: Forward Request
 activate Grid Service
 
@@ -13,7 +14,7 @@ deactivate Telemetry Service
 
 Grid Service->Utility Service: Get Grid Zone config
 activate Utility Service
-Utility Service->Database: Query GridZone\n(maxCapacity, boundaries)
+Utility Service->Database: Query GridZone\n(maxCapacity, boundaries,\nsafetyThreshold, postalCode)
 Database-->Utility Service: GridZone records
 Utility Service-->Grid Service: Response
 deactivate Utility Service
@@ -25,7 +26,7 @@ Database-->AssetLink Service: AssetLink records
 AssetLink Service-->Grid Service: Response
 deactivate AssetLink Service
 
-note right of Grid Service: Detect deficit/surplus zones\nIf zone load > 80% maxCapacity:\nfind neighbouring zone with surplus
+note right of Grid Service: Detect deficit/surplus zones\nIf zone load > safetyThreshold (per-zone, default 80% maxCapacity):\nfind neighbouring zone with surplus\n(neighbours = postal codes differing by ≤1)
 
 Grid Service->Database: INSERT INTO GridBalancingRecommendations\n(deficitZoneId, surplusZoneId, recommendedActionKw, timestamp)
 Database-->Grid Service: OK
@@ -36,3 +37,4 @@ note right of Kafka: Topic = grid-balancing-recommendation
 Grid Service-->Kong: Response
 deactivate Grid Service
 Kong-->Camunda: Forward Response
+Camunda-->VPPaaS: Forward Response

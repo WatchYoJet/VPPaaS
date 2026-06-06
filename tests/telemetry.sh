@@ -1,9 +1,7 @@
 #!/bin/bash
 source "$(dirname "$0")/get-addresses.sh"
-API_URL="http://$GROUP_A:8082/Telemetry"
-KAFKA_BROKER=$(cd "$(dirname "$0")/../terraform/Kafka" && \
-  terraform state show 'aws_instance.exampleKafkaConfiguration[0]' -no-color 2>/dev/null \
-  | grep ' public_dns' | sed 's/.*=//;s/"//g;s/ //g'):9092
+API_URL="http://$TELEMETRY_DNS:8080/Telemetry"
+KAFKA_BROKER=$(echo "$KAFKA_BROKERS" | cut -d',' -f1)
 TOPIC='1-ArcoCegoLisbon'
 
 response=$(curl -s -X POST "$API_URL/Consume" \

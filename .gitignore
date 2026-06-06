@@ -7,6 +7,12 @@
 
 # Credentials / secrets
 access.sh
+labsuser.pem
+access2.sh
+labsuser2.pem
+account1-addresses.env
+amis.env
+
 
 # macOS
 .DS_Store
@@ -16,5 +22,3 @@ target/
 *.class
 *.jar
 !tests/VPPaaSSimulator.jar
-labsuser.pem
-access.sh

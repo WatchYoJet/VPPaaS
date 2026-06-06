@@ -1,6 +1,6 @@
 #!/bin/bash
 source "$(dirname "$0")/get-addresses.sh"
-API_URL="http://$GROUP_A:8081/GridZone"
+API_URL="http://$UTILITYOPERATOR_DNS:8080/GridZone"
 
 response=$(curl -s -X GET "$API_URL" -H 'accept: application/json')
 echo "GET all grid zones: $response"

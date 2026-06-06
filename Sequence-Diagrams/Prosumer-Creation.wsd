@@ -1,0 +1,32 @@
+title Prosumer Creation Business Process
+
+actor Prosumer
+participant Camunda
+participant VPPaaS
+participant Kong
+participant "Prosumer Service" as Service
+
+Prosumer->Camunda: Fill registration data\n(Name, FiscalNumber, LocationAddress,\nLocationPostalCode, PaymentDetails)
+Camunda->VPPaaS: Request Prosumer Registration
+activate VPPaaS
+VPPaaS->VPPaaS: Verify if registration is possible\n(promise: true/false)
+
+alt promise = true
+  VPPaaS-->Camunda: Promise
+  VPPaaS->Kong: POST /Prosumer
+  Kong->Service: Forward Create Request
+  activate Service
+  Service->Database: INSERT Prosumer data\n(name, fiscalNumber, address,\npostalCode, paymentDetails)
+  Database-->Service: OK (returns prosumerID)
+  Service-->Kong: Response (prosumerID)
+  deactivate Service
+  Kong-->VPPaaS: Response
+  VPPaaS-->Camunda: Declare (prosumerID)
+  Camunda->Prosumer: Check Registration order\n(prosumerID confirmed)
+  Prosumer->Camunda: Accept
+  Camunda-->VPPaaS: Accept
+else promise = false
+  VPPaaS-->Camunda: Decline
+  Camunda->Prosumer: Decide what to do next\n(retry or abort)
+end
+deactivate VPPaaS

@@ -1,0 +1,5 @@
+rds_address = "vppas202620260606130324700100000001.ctsic4aeg78g.us-east-1.rds.amazonaws.com"
+kafka_brokers = "ec2-44-213-66-153.compute-1.amazonaws.com:9092,ec2-44-200-168-34.compute-1.amazonaws.com:9092,ec2-44-197-235-42.compute-1.amazonaws.com:9092"
+telemetry_url = "http://ec2-44-222-61-182.compute-1.amazonaws.com:8080"
+utilityoperator_url = "http://ec2-3-235-195-143.compute-1.amazonaws.com:8080"
+assetlink_url = "http://ec2-100-53-112-134.compute-1.amazonaws.com:8080"

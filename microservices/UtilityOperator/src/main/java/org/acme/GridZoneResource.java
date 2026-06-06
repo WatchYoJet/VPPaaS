@@ -45,7 +45,7 @@ public class GridZoneResource {
     @PUT
     @Path("/{id}/{maxCapacity}/{boundaries}")
     public Uni<Response> update(Long id, Double maxCapacity, String boundaries) {
-        return GridZone.update(client, id, maxCapacity, boundaries)
+        return GridZone.update(client, id, maxCapacity, boundaries, null, null)
                 .onItem().transform(updated -> updated ? Response.Status.NO_CONTENT : Response.Status.NOT_FOUND)
                 .onItem().transform(status -> Response.status(status).build());
     }

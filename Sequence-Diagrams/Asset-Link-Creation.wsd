@@ -1,0 +1,44 @@
+title Asset Link Creation Business Process
+
+actor Prosumer
+participant Camunda
+participant VPPaaS
+participant Kong
+participant "AssetLink Service" as Service
+participant "Telemetry Service" as Telemetry
+participant Kafka
+
+Prosumer->Camunda: Fill Asset Link creation data\n(prosumerID, utilityOperatorID)
+Camunda->VPPaaS: Request Asset Link Creation
+activate VPPaaS
+VPPaaS->VPPaaS: Verify if creation is possible\n(promise: true/false)
+
+alt promise = true
+  VPPaaS-->Camunda: Promise
+  VPPaaS->Kong: POST /AssetLink
+  Kong->Service: Forward Create Request
+  activate Service
+  Service->Database: INSERT AssetLink\n(idProsumer, idUtilityOperator)
+  Database-->Service: OK (returns new AssetLink ID)
+  Service->Kafka: Create Topic\n(AssetLinkID-UtilityOperatorName)\ne.g. "1-EDP"
+  note right of Kafka: Topic name format:\nAssetLinkID-UtilityOperatorName
+  Kafka-->Service: Topic created
+  Service->Telemetry: Register Topic for Consumption
+  activate Telemetry
+  Telemetry->Kafka: Subscribe to new topic
+  note right of Telemetry: Spawns DynamicTopicConsumer thread
+  Kafka-->Telemetry: Subscribed
+  Telemetry-->Service: OK
+  deactivate Telemetry
+  Service-->Kong: Response (assetLinkID)
+  deactivate Service
+  Kong-->VPPaaS: Response
+  VPPaaS-->Camunda: Declare (assetLinkID)
+  Camunda->Prosumer: Check Asset Link Creation\n(assetLinkID confirmed)
+  Prosumer->Camunda: Accept
+  Camunda-->VPPaaS: Accept
+else promise = false
+  VPPaaS-->Camunda: Decline
+  Camunda->Prosumer: Decide what to do next\n(retry or abort)
+end
+deactivate VPPaaS

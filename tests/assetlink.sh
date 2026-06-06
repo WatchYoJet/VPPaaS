@@ -1,6 +1,6 @@
 #!/bin/bash
 source "$(dirname "$0")/get-addresses.sh"
-API_URL="http://$GROUP_B:8080/AssetLink"
+API_URL="http://$ASSETLINK_DNS:8080/AssetLink"
 
 response=$(curl -s -X GET "$API_URL" -H 'accept: application/json')
 echo "GET all asset links: $response"

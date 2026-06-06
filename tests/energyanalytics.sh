@@ -1,6 +1,6 @@
 #!/bin/bash
 source "$(dirname "$0")/get-addresses.sh"
-API_URL="http://$GROUP_C:8080/EnergyAnalytics"
+API_URL="http://$ENERGYANALYTICS_DNS:8080/EnergyAnalytics"
 
 response=$(curl -s -X GET "$API_URL" -H 'accept: application/json')
 echo "GET all energy analytics: $response"

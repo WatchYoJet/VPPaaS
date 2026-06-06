@@ -1,0 +1,35 @@
+title Grid Zone Management Business Process
+
+actor "Utility Operator" as UO
+participant Camunda
+participant VPPaaS
+participant Kong
+participant "Utility Operator Service" as Service
+
+UO->Camunda: Fill Grid Zone data\n(utilityOperatorId, name, maxCapacity,\nboundaries, safetyThreshold, postalCode)
+Camunda->VPPaaS: Request Grid Zone operation
+activate VPPaaS
+VPPaaS->VPPaaS: Verify if operation is possible\n(promise: true/false)
+
+alt promise = true
+  VPPaaS-->Camunda: Promise
+  VPPaaS->Kong: POST/PUT/DELETE /GridZone
+  Kong->Service: Forward Request
+  activate Service
+
+  note right of Service: Grid Zone operations:\n- Create zone under a UtilityOperator\n- Update maxCapacity, boundaries\n- Set safetyThreshold (kW stress limit)\n- Set postalCode (for neighbour detection)
+
+  Service->Database: Read/Write GridZone data\n(gridZoneId, utilityOperatorId,\nmaxCapacity, boundaries,\nsafetyThreshold, postalCode)
+  Database-->Service: Result
+  Service-->Kong: Response
+  deactivate Service
+  Kong-->VPPaaS: Response
+  VPPaaS-->Camunda: Declare (result)
+  Camunda->UO: Check Grid Zone order\n(confirmed)
+  UO->Camunda: Accept
+  Camunda-->VPPaaS: Accept
+else promise = false
+  VPPaaS-->Camunda: Decline
+  Camunda->UO: Decide what to do next\n(retry or abort)
+end
+deactivate VPPaaS

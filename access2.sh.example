@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Copy this file to access2.sh and fill in your Account 2 lab credentials
+# (from AWS Academy → AWS Details → AWS CLI, logged into Account 2)
+
+export AWS_ACCESS_KEY_ID=REPLACE_WITH_ACCOUNT2_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY=REPLACE_WITH_ACCOUNT2_SECRET_ACCESS_KEY
+export AWS_SESSION_TOKEN=REPLACE_WITH_ACCOUNT2_SESSION_TOKEN
+
+export DockerUsername=REPLACE_WITH_DOCKER_USERNAME
+export DockerPassword=REPLACE_WITH_DOCKER_PAT_TOKEN

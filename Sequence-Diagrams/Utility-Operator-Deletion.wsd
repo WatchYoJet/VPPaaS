@@ -1,0 +1,32 @@
+title Utility Operator Deletion Business Process
+
+actor "Utility Operator" as UO
+participant Camunda
+participant VPPaaS
+participant Kong
+participant "Utility Operator Service" as Service
+
+UO->Camunda: Fill deletion data\n(utilityOperatorID)
+Camunda->VPPaaS: Request Utility Operator Deletion
+activate VPPaaS
+VPPaaS->VPPaaS: Verify if deletion is possible\n(promise: true/false)
+
+alt promise = true
+  VPPaaS-->Camunda: Promise
+  VPPaaS->Kong: DELETE /UtilityOperator/{id}
+  Kong->Service: Forward Delete Request
+  activate Service
+  Service->Database: DELETE UtilityOperator record
+  Database-->Service: OK
+  Service-->Kong: Response
+  deactivate Service
+  Kong-->VPPaaS: Response
+  VPPaaS-->Camunda: Declare
+  Camunda->UO: Check Deletion order\n(confirmed)
+  UO->Camunda: Accept
+  Camunda-->VPPaaS: Accept
+else promise = false
+  VPPaaS-->Camunda: Decline
+  Camunda->UO: Decide what to do next\n(retry or abort)
+end
+deactivate VPPaaS

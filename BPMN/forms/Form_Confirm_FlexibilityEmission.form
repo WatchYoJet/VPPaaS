@@ -1,0 +1,35 @@
+{
+  "components": [
+    {
+      "label": "Events Processed",
+      "type": "number",
+      "layout": {
+        "row": "Row_count",
+        "columns": null
+      },
+      "id": "Field_fe_conf_count",
+      "key": "eventsProcessed",
+      "readonly": true
+    },
+    {
+      "label": "Confirmed",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_confirmed",
+        "columns": null
+      },
+      "id": "Field_fe_conf_confirmed",
+      "key": "confirmed",
+      "defaultValue": true
+    }
+  ],
+  "type": "default",
+  "id": "Form_Confirm_FlexibilityEmission",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  },
+  "schemaVersion": 19
+}

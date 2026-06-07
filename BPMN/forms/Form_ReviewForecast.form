@@ -1,0 +1,36 @@
+{
+  "components": [
+    {
+      "label": "Forecast",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_forecast",
+        "columns": null
+      },
+      "id": "Field_forecast_text",
+      "key": "forecastText",
+      "readonly": true,
+      "rows": 6
+    },
+    {
+      "label": "Approve forecast",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_approve",
+        "columns": null
+      },
+      "id": "Field_forecast_approve",
+      "key": "approved",
+      "defaultValue": true
+    }
+  ],
+  "type": "default",
+  "id": "Form_ReviewForecast",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  },
+  "schemaVersion": 19
+}

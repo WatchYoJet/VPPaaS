@@ -1,6 +1,6 @@
 #!/bin/bash
 source "$(dirname "$0")/get-addresses.sh"
-API_URL="http://$OLLAMA_DNS:8080/FlexibilityForecasting"
+API_URL="http://$KONG_DNS:8000/FlexibilityForecasting"
 
 echo "Calling AI forecast endpoint (may take up to 60s)..."
 

@@ -1,1 +1,1 @@
-flexibilityevent_url = "http://ec2-44-192-29-192.compute-1.amazonaws.com:8080"
+flexibilityevent_url = "http://ec2-3-236-230-5.compute-1.amazonaws.com:8080"

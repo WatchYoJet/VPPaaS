@@ -1,7 +1,7 @@
 #!/bin/bash
 source "$(dirname "$0")/get-addresses.sh"
-API_URL="http://$GRIDBALANCING_DNS:8080/GridBalancing"
-GRIDZONE_URL="http://$UTILITYOPERATOR_DNS:8080/GridZone"
+API_URL="http://$KONG_DNS:8000/GridBalancing"
+GRIDZONE_URL="http://$KONG_DNS:8000/GridZone"
 
 echo "Creating GridZone for utility operator 1..."
 curl -s -X POST "$GRIDZONE_URL" \

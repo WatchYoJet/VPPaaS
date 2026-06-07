@@ -69,7 +69,10 @@ resource "null_resource" "kafkaClusterSetup" {
 }
 
 resource "aws_security_group" "instance" {
-  name = "terraform-kafka-account1-2026"
+  name = "terraform-kafka-account1-${substr(random_uuid.kafka_cluster_id.result, 0, 8)}"
+  lifecycle {
+    ignore_changes = all
+  }
   ingress {
     from_port   = 22
     to_port     = 22

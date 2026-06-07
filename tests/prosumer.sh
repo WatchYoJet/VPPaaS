@@ -1,6 +1,6 @@
 #!/bin/bash
 source "$(dirname "$0")/get-addresses.sh"
-API_URL="http://$PROSUMER_DNS:8080/Prosumer"
+API_URL="http://$KONG_DNS:8000/Prosumer"
 
 response=$(curl -s -X GET "$API_URL" -H 'accept: application/json')
 echo "GET all prosumers: $response"

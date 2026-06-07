@@ -1,0 +1,46 @@
+{
+  "components": [
+    {
+      "label": "Prosumer ID",
+      "type": "number",
+      "layout": {
+        "row": "Row_info1",
+        "columns": null
+      },
+      "id": "Field_prom_al_prosumer",
+      "key": "prosumerID",
+      "readonly": true
+    },
+    {
+      "label": "Utility Operator ID",
+      "type": "number",
+      "layout": {
+        "row": "Row_info2",
+        "columns": null
+      },
+      "id": "Field_prom_al_uo",
+      "key": "UtilityOperatorID",
+      "readonly": true
+    },
+    {
+      "label": "Is it possible to promise the request?",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_179ar8t",
+        "columns": null
+      },
+      "id": "Field_1u7vprv",
+      "key": "promise",
+      "defaultValue": true
+    }
+  ],
+  "type": "default",
+  "id": "Form_Promise_AssetLinkMng",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  },
+  "schemaVersion": 19
+}

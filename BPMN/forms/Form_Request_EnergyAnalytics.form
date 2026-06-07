@@ -1,0 +1,24 @@
+{
+  "components": [
+    {
+      "label": "Proceed with Energy Analytics Computation?",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_proceed",
+        "columns": null
+      },
+      "id": "Field_ea_req_proceed",
+      "key": "proceed",
+      "defaultValue": true
+    }
+  ],
+  "type": "default",
+  "id": "Form_Request_EnergyAnalytics",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  },
+  "schemaVersion": 19
+}

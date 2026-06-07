@@ -1,6 +1,6 @@
 #!/bin/bash
 source "$(dirname "$0")/get-addresses.sh"
-API_URL="http://$TELEMETRY_DNS:8080/Telemetry"
+API_URL="http://$KONG_DNS:8000/Telemetry"
 KAFKA_BROKER=$(echo "$KAFKA_BROKERS" | cut -d',' -f1)
 TOPIC='1-ArcoCegoLisbon'
 

@@ -22,3 +22,4 @@ target/
 *.class
 *.jar
 !tests/VPPaaSSimulator.jar
+dependency-reduced-pom.xml

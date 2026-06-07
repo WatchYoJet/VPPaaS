@@ -1,0 +1,35 @@
+{
+  "components": [
+    {
+      "label": "Utility Operator",
+      "type": "select",
+      "layout": {
+        "row": "Row_03b91bd",
+        "columns": null
+      },
+      "id": "Field_1gwhrps",
+      "key": "UtilityOperatorID",
+      "valuesExpression": "= for item in UtilityOperatorList return {label: item.name + \" (\" + item.location + \", ID: \" + string(item.id) + \")\", value: item.id}"
+    },
+    {
+      "label": "Prosumer",
+      "type": "select",
+      "layout": {
+        "row": "Row_12o0edy",
+        "columns": null
+      },
+      "id": "Field_1mj4dyb",
+      "key": "prosumerID",
+      "valuesExpression": "= for item in ProsumerList return {label: item.name + \" (\" + item.location + \", ID: \" + string(item.id) + \")\", value: item.id}"
+    }
+  ],
+  "type": "default",
+  "id": "FormChoiceDataForAssetLink",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  },
+  "schemaVersion": 19
+}

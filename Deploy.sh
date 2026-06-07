@@ -26,6 +26,22 @@ terraform -chdir=terraform/Account1/Kafka init -reconfigure
 terraform -chdir=terraform/Account1/Kafka apply -auto-approve
 KAFKA_BROKERS=$(terraform -chdir=terraform/Account1/Kafka output -raw kafka_brokers)
 
+FIRST_BROKER_HOST=$(echo "$KAFKA_BROKERS" | cut -d',' -f1 | cut -d':' -f1)
+echo -n "Waiting for Kafka brokers to be ready..."
+ELAPSED=0
+until nc -zw 3 "$FIRST_BROKER_HOST" 9092 2>/dev/null; do
+  if [ $ELAPSED -ge 300 ]; then
+    echo ""
+    echo "ERROR: Kafka broker $FIRST_BROKER_HOST:9092 not reachable after 5 minutes."
+    echo "Re-run: terraform -chdir=terraform/Account1/Kafka apply -replace='null_resource.kafkaClusterSetup[0]' -replace='null_resource.kafkaClusterSetup[1]' -replace='null_resource.kafkaClusterSetup[2]'"
+    exit 1
+  fi
+  echo -n "."
+  sleep 10
+  ELAPSED=$((ELAPSED + 10))
+done
+echo " ready! (${ELAPSED}s)"
+
 terraform -chdir=terraform/Account1/Kong init -reconfigure
 terraform -chdir=terraform/Account1/Kong apply -auto-approve
 KONG_DNS=$(terraform -chdir=terraform/Account1/Kong output -raw public_dns)

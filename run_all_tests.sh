@@ -5,15 +5,6 @@ TESTS="$ROOT/tests"
 
 source "$TESTS/get-addresses.sh"
 
-KAFKA=$(cd "$ROOT/terraform/Kafka" && \
-  terraform state show 'aws_instance.exampleKafkaConfiguration[0]' -no-color 2>/dev/null \
-  | grep ' public_dns' | sed 's/.*=//;s/"//g;s/ //g')
-
-if [ -z "$KAFKA" ]; then
-  echo "[ERROR] Could not resolve Kafka broker address from Terraform state" >&2
-  exit 1
-fi
-
 PASS=0
 FAIL=0
 SKIP=0
@@ -46,7 +37,7 @@ echo "================================================"
 echo " Populating Telemetry via Simulator"
 echo "================================================"
 
-curl -s -X POST "http://$GROUP_A:8082/Telemetry/Consume" \
+curl -s -X POST "http://$KONG_DNS:8000/Telemetry/Consume" \
   -H "Content-Type: application/json" \
   -d '{"TopicName":"1-ArcoCegoLisbon"}'
 echo " Consumer registered"
@@ -54,7 +45,7 @@ echo " Consumer registered"
 sleep 3
 
 java -jar "$TESTS/VPPaaSSimulator.jar" \
-  --broker-list "$KAFKA:9092" \
+  --broker-list "$KAFKA_BROKERS" \
   --filterprefix 1 \
   --throughput 2 &
 SIM_PID=$!
@@ -63,7 +54,7 @@ sleep 30
 kill $SIM_PID 2>/dev/null
 echo " Simulator stopped"
 
-TELEMETRY_COUNT=$(curl -s "http://$GROUP_A:8082/Telemetry" | \
+TELEMETRY_COUNT=$(curl -s "http://$KONG_DNS:8000/Telemetry" | \
   python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
 echo " Telemetry events in DB: $TELEMETRY_COUNT"
 
@@ -85,7 +76,7 @@ echo ""
 echo "================================================"
 echo " Checking Ollama model"
 echo "================================================"
-MODEL_READY=$(curl -s "http://$OLLAMA:11434/api/tags" | python3 -c \
+MODEL_READY=$(curl -s "http://$OLLAMA_DNS:11434/api/tags" | python3 -c \
   "import sys,json; models=[m['name'] for m in json.load(sys.stdin).get('models',[])]; print('yes' if any('llama3.2' in m for m in models) else 'no')" \
   2>/dev/null || echo "no")
 
@@ -93,7 +84,7 @@ if [ "$MODEL_READY" = "yes" ]; then
   run "Forecast" "$TESTS/forecast.sh"
 else
   echo "[SKIP] Forecast — llama3.2 not loaded on Ollama yet"
-  echo "       Pull it with: curl -X POST http://$OLLAMA:11434/api/pull -d '{\"name\":\"llama3.2\"}'"
+  echo "       Pull it with: curl -X POST http://$OLLAMA_DNS:11434/api/pull -d '{\"name\":\"llama3.2\"}'"
   SKIP=$((SKIP + 1))
 fi
 

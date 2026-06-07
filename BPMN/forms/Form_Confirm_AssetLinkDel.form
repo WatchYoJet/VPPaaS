@@ -1,0 +1,16 @@
+{
+  "components": [
+    {
+      "label": "The manager has approved the deletion. Do you confirm the order?",
+      "type": "checkbox",
+      "id": "Field_ConfirmALDel",
+      "key": "accept"
+    }
+  ],
+  "type": "default",
+  "id": "Form_Confirm_AssetLinkDel",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

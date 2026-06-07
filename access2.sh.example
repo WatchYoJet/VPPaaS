@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Copy this file to access2.sh and fill in your Account 2 lab credentials
-# (from AWS Academy → AWS Details → AWS CLI, logged into Account 2)
+# (from AWS Academy - AWS Details - AWS CLI, logged into Account 2)
 
 export AWS_ACCESS_KEY_ID=REPLACE_WITH_ACCOUNT2_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY=REPLACE_WITH_ACCOUNT2_SECRET_ACCESS_KEY

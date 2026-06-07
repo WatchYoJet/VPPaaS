@@ -10,6 +10,7 @@ This API stores asset telemetry readings consumed from Kafka topics and exposes 
 - [GET /Telemetry](#get-telemetry)
 - [GET /Telemetry/{id}](#get-telemetryid)
 - [POST /Telemetry/Consume](#post-telemetryconsume)
+- [DELETE /Telemetry/Consume/{topicName}](#delete-telemetryconsumetopicname)
 
 </details>
 
@@ -120,3 +121,25 @@ The topic name format is `{assetLinkId}-{utilityOperatorName}` (e.g. `1-EDP`).
 Returns a plain text confirmation: `New worker started`.
 
 A background `DynamicTopicConsumer` thread is started that continuously reads from the given Kafka topic and inserts records into the `Telemetry` table.
+
+## DELETE /Telemetry/Consume/{topicName}
+
+Stops and deregisters a Kafka topic consumer. This endpoint is called automatically by the Asset Link service on asset link deletion and does not need to be called manually.
+
+No payload is required. The topic name is passed as a path parameter.
+
+> <details>
+> <summary>Curl Example</summary>
+>
+> ```bash
+> curl -X DELETE \
+>   'http://<KONG_HOST>:8000/Telemetry/Consume/1-EDP'
+> ```
+>
+> </details>
+
+<br>
+
+Returns `204 No Content` if the consumer was found and stopped, or `404 Not Found` if no consumer is registered for that topic name.
+
+The background thread is interrupted and the `KafkaConsumer` is closed cleanly. After this call the topic name is removed from the registry; a subsequent `DELETE` for the same name returns `404`.

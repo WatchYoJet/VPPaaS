@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_Del" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.47.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:collaboration id="Collaboration_Del">
+    <bpmn:participant id="Participant_DelInit" name="PROSUMER" processRef="ProsumerDeletionInitiator" />
+    <bpmn:participant id="Participant_DelExec" name="PROSUMER MANAGER" processRef="ProsumerDeletionExecutor" />
+    <bpmn:messageFlow id="MsgFlow_Del_Req" sourceRef="Task_Del_SendReq" targetRef="StartEvt_DelExec" />
+    <bpmn:messageFlow id="MsgFlow_Del_Decline" sourceRef="Task_Del_Decline" targetRef="MsgCatch_Del_Decline" />
+    <bpmn:messageFlow id="MsgFlow_Del_Declare" sourceRef="Task_Del_Declare" targetRef="MsgCatch_Del_Declare" />
+    <bpmn:messageFlow id="MsgFlow_Del_Accept" sourceRef="Task_Del_Accept" targetRef="MsgCatch_Del_Accept" />
+    <bpmn:messageFlow id="MsgFlow_Del_Reject" sourceRef="Task_Del_Reject" targetRef="MsgCatch_Del_Reject" />
+  </bpmn:collaboration>
+  <bpmn:process id="ProsumerDeletionInitiator" name="ProsumerDeletionInitiator" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_DelInit">
+      <bpmn:lane id="Lane_DelInit" name="Initiator TK01">
+        <bpmn:flowNodeRef>StartEvt_DelInit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_SelectProsumer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_SendReq</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Del_WaitResp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>MsgCatch_Del_Decline</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvt_Del_Declined</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Del_Decision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvt_Del_Done</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_Confirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>MsgCatch_Del_Declare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_Accept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_Reject</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvt_Del_Rejected</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvt_DelInit" name="Start deletion">
+      <bpmn:outgoing>Flow_Di_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Del_SelectProsumer" name="Select Prosumer to Delete">
+      <bpmn:extensionElements>
+        <zeebe:formDefinition formId="Form_Request_ProsumerDeletion" />
+        <zeebe:assignmentDefinition assignee="demo" />
+        <zeebe:userTask />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Di_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Di_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_Del_SendReq" name="Request Prosumer Deletion" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="12">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="http://CAMUNDA_DNS_PLACEHOLDER:8080/v2/process-instances" target="url" />
+          <zeebe:input source="={&#34;Content-Type&#34;: &#34;Application/json&#34;, &#34;accept&#34;: &#34;Application/json&#34;}" target="headers" />
+          <zeebe:input source="=false" target="storeResponse" />
+          <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=20" target="readTimeoutInSeconds" />
+          <zeebe:input source="={&#34;processDefinitionId&#34;: &#34;ProsumerDeletionExecutor&#34;, &#34;variables&#34;: {&#34;prosumerId&#34;: prosumerId}}" target="body" />
+          <zeebe:input source="=false" target="ignoreNullValues" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="12" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.HttpJson.v2" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Di_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_Di_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:eventBasedGateway id="GW_Del_WaitResp" name="Wait for response">
+      <bpmn:incoming>Flow_Di_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_Di_4a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Di_4b</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="MsgCatch_Del_Decline" name="Decline received">
+      <bpmn:incoming>Flow_Di_4a</bpmn:incoming>
+      <bpmn:outgoing>Flow_Di_5a</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MsgDef_Del_Decline_Init" messageRef="Msg_Del_Decline" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="EndEvt_Del_Declined" name="Declined">
+      <bpmn:incoming>Flow_Di_5a</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="GW_Del_Decision" name="Accept deletion?">
+      <bpmn:incoming>Flow_Di_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_Di_7a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Di_7b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvt_Del_Done" name="Done">
+      <bpmn:incoming>Flow_Di_8a</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Di_1" sourceRef="StartEvt_DelInit" targetRef="Task_Del_SelectProsumer" />
+    <bpmn:sequenceFlow id="Flow_Di_2" sourceRef="Task_Del_SelectProsumer" targetRef="Task_Del_SendReq" />
+    <bpmn:sequenceFlow id="Flow_Di_3" sourceRef="Task_Del_SendReq" targetRef="GW_Del_WaitResp" />
+    <bpmn:sequenceFlow id="Flow_Di_4a" sourceRef="GW_Del_WaitResp" targetRef="MsgCatch_Del_Decline" />
+    <bpmn:sequenceFlow id="Flow_Di_4b" sourceRef="GW_Del_WaitResp" targetRef="MsgCatch_Del_Declare" />
+    <bpmn:sequenceFlow id="Flow_Di_5a" sourceRef="MsgCatch_Del_Decline" targetRef="EndEvt_Del_Declined" />
+    <bpmn:sequenceFlow id="Flow_Di_5b" sourceRef="MsgCatch_Del_Declare" targetRef="Task_Del_Confirm" />
+    <bpmn:sequenceFlow id="Flow_Di_6" sourceRef="Task_Del_Confirm" targetRef="GW_Del_Decision" />
+    <bpmn:sequenceFlow id="Flow_Di_7a" name="Yes" sourceRef="GW_Del_Decision" targetRef="Task_Del_Accept">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=accept</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Di_7b" name="No" sourceRef="GW_Del_Decision" targetRef="Task_Del_Reject">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=not(accept)</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Di_8a" sourceRef="Task_Del_Accept" targetRef="EndEvt_Del_Done" />
+    <bpmn:sequenceFlow id="Flow_Di_8b" sourceRef="Task_Del_Reject" targetRef="EndEvt_Del_Rejected" />
+    <bpmn:userTask id="Task_Del_Confirm" name="Confirm Deletion">
+      <bpmn:extensionElements>
+        <zeebe:formDefinition formId="Form_Confirm_ProsumerDeletion" />
+        <zeebe:assignmentDefinition assignee="demo" />
+        <zeebe:userTask />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Di_5b</bpmn:incoming>
+      <bpmn:outgoing>Flow_Di_6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateCatchEvent id="MsgCatch_Del_Declare" name="Declare received">
+      <bpmn:incoming>Flow_Di_4b</bpmn:incoming>
+      <bpmn:outgoing>Flow_Di_5b</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MsgDef_Del_Declare_Init" messageRef="Msg_Del_Declare" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="Task_Del_Accept" name="Accept Deletion Order" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="12">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="http://CAMUNDA_DNS_PLACEHOLDER:8080/v2/messages/publication" target="url" />
+          <zeebe:input source="={&#34;Content-Type&#34;: &#34;Application/json&#34;, &#34;accept&#34;: &#34;Application/json&#34;}" target="headers" />
+          <zeebe:input source="=false" target="storeResponse" />
+          <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=20" target="readTimeoutInSeconds" />
+          <zeebe:input source="={&#34;name&#34;: &#34;Msg_Del_Accept&#34;, &#34;correlationKey&#34;: string(prosumerId)}" target="body" />
+          <zeebe:input source="=false" target="ignoreNullValues" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="12" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.HttpJson.v2" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Di_7a</bpmn:incoming>
+      <bpmn:outgoing>Flow_Di_8a</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Del_Reject" name="Reject Deletion Order" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="12">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="http://CAMUNDA_DNS_PLACEHOLDER:8080/v2/messages/publication" target="url" />
+          <zeebe:input source="={&#34;Content-Type&#34;: &#34;Application/json&#34;, &#34;accept&#34;: &#34;Application/json&#34;}" target="headers" />
+          <zeebe:input source="=false" target="storeResponse" />
+          <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=20" target="readTimeoutInSeconds" />
+          <zeebe:input source="={&#34;name&#34;: &#34;Msg_Del_Reject&#34;, &#34;correlationKey&#34;: string(prosumerId)}" target="body" />
+          <zeebe:input source="=false" target="ignoreNullValues" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="12" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.HttpJson.v2" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Di_7b</bpmn:incoming>
+      <bpmn:outgoing>Flow_Di_8b</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvt_Del_Rejected" name="Rejected">
+      <bpmn:incoming>Flow_Di_8b</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmn:process id="ProsumerDeletionExecutor" name="ProsumerDeletionExecutor" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_DelExec">
+      <bpmn:lane id="Lane_DelExec" name="Executor TK02">
+        <bpmn:flowNodeRef>StartEvt_DelExec</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_FetchProsumer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_ReviewReq</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvt_DelExec_Declined</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_DeleteProsumer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_Declare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Del_WaitResult</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>MsgCatch_Del_Accept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>MsgCatch_Del_Reject</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvt_DelExec_Accepted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvt_DelExec_Rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Del_Promise</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Del_Decline</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvt_DelExec" name="Request received">
+      <bpmn:outgoing>Flow_De_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_Del_FetchProsumer" name="Fetch Prosumer Data" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="12">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="GET" target="method" />
+          <zeebe:input source="=&#34;http://KONG_DNS_PLACEHOLDER:8000/Prosumer/&#34; + string(prosumerId)" target="url" />
+          <zeebe:input source="={&#34;accept&#34;: &#34;application/json&#34;}" target="headers" />
+          <zeebe:input source="=true" target="storeResponse" />
+          <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=20" target="readTimeoutInSeconds" />
+          <zeebe:input source="=false" target="ignoreNullValues" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="12" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.HttpJson.v2" />
+          <zeebe:header key="resultExpression" value="={ prosumerData: response.body }" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_De_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_De_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_Del_ReviewReq" name="Review Deletion Request">
+      <bpmn:extensionElements>
+        <zeebe:formDefinition formId="Form_Promise_ProsumerDeletion" />
+        <zeebe:assignmentDefinition assignee="demo" />
+        <zeebe:userTask />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_De_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_De_3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvt_DelExec_Declined" name="Declined">
+      <bpmn:incoming>Flow_De_5a</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_Del_DeleteProsumer" name="Delete Prosumer" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="12">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="DELETE" target="method" />
+          <zeebe:input source="=&#34;http://KONG_DNS_PLACEHOLDER:8000/Prosumer/&#34; + string(prosumerId)" target="url" />
+          <zeebe:input source="={&#34;accept&#34;: &#34;application/json&#34;}" target="headers" />
+          <zeebe:input source="=false" target="storeResponse" />
+          <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=20" target="readTimeoutInSeconds" />
+          <zeebe:input source="=false" target="ignoreNullValues" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="12" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.HttpJson.v2" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_De_4b</bpmn:incoming>
+      <bpmn:outgoing>Flow_De_5b</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Del_Declare" name="Declare Deletion Order" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="12">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="http://CAMUNDA_DNS_PLACEHOLDER:8080/v2/messages/publication" target="url" />
+          <zeebe:input source="={&#34;Content-Type&#34;: &#34;Application/json&#34;, &#34;accept&#34;: &#34;Application/json&#34;}" target="headers" />
+          <zeebe:input source="=false" target="storeResponse" />
+          <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=20" target="readTimeoutInSeconds" />
+          <zeebe:input source="={&#34;name&#34;: &#34;Msg_Del_Declare&#34;, &#34;correlationKey&#34;: string(prosumerId)}" target="body" />
+          <zeebe:input source="=false" target="ignoreNullValues" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="12" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.HttpJson.v2" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_De_5b</bpmn:incoming>
+      <bpmn:outgoing>Flow_De_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:eventBasedGateway id="GW_Del_WaitResult" name="Wait for result">
+      <bpmn:incoming>Flow_De_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_De_7a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_De_7b</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="MsgCatch_Del_Accept" name="Accept received">
+      <bpmn:incoming>Flow_De_7a</bpmn:incoming>
+      <bpmn:outgoing>Flow_De_8a</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MsgDef_Del_Accept_Exec" messageRef="Msg_Del_Accept" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="MsgCatch_Del_Reject" name="Reject received">
+      <bpmn:incoming>Flow_De_7b</bpmn:incoming>
+      <bpmn:outgoing>Flow_De_8b</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MsgDef_Del_Reject_Exec" messageRef="Msg_Del_Reject" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="EndEvt_DelExec_Accepted" name="Accepted">
+      <bpmn:incoming>Flow_De_8a</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvt_DelExec_Rejected" name="Rejected">
+      <bpmn:incoming>Flow_De_8b</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_De_1" sourceRef="StartEvt_DelExec" targetRef="Task_Del_FetchProsumer" />
+    <bpmn:sequenceFlow id="Flow_De_2" sourceRef="Task_Del_FetchProsumer" targetRef="Task_Del_ReviewReq" />
+    <bpmn:sequenceFlow id="Flow_De_3" sourceRef="Task_Del_ReviewReq" targetRef="GW_Del_Promise" />
+    <bpmn:sequenceFlow id="Flow_De_4a" name="No" sourceRef="GW_Del_Promise" targetRef="Task_Del_Decline">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=not(promise)</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_De_4b" name="Yes" sourceRef="GW_Del_Promise" targetRef="Task_Del_DeleteProsumer">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=promise</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_De_5a" sourceRef="Task_Del_Decline" targetRef="EndEvt_DelExec_Declined" />
+    <bpmn:sequenceFlow id="Flow_De_5b" sourceRef="Task_Del_DeleteProsumer" targetRef="Task_Del_Declare" />
+    <bpmn:sequenceFlow id="Flow_De_6" sourceRef="Task_Del_Declare" targetRef="GW_Del_WaitResult" />
+    <bpmn:sequenceFlow id="Flow_De_7a" sourceRef="GW_Del_WaitResult" targetRef="MsgCatch_Del_Accept" />
+    <bpmn:sequenceFlow id="Flow_De_7b" sourceRef="GW_Del_WaitResult" targetRef="MsgCatch_Del_Reject" />
+    <bpmn:sequenceFlow id="Flow_De_8a" sourceRef="MsgCatch_Del_Accept" targetRef="EndEvt_DelExec_Accepted" />
+    <bpmn:sequenceFlow id="Flow_De_8b" sourceRef="MsgCatch_Del_Reject" targetRef="EndEvt_DelExec_Rejected" />
+    <bpmn:exclusiveGateway id="GW_Del_Promise" name="Promise deletion?">
+      <bpmn:incoming>Flow_De_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_De_4a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_De_4b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Del_Decline" name="Decline Deletion Order" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="12">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="http://CAMUNDA_DNS_PLACEHOLDER:8080/v2/messages/publication" target="url" />
+          <zeebe:input source="={&#34;Content-Type&#34;: &#34;Application/json&#34;, &#34;accept&#34;: &#34;Application/json&#34;}" target="headers" />
+          <zeebe:input source="=false" target="storeResponse" />
+          <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=20" target="readTimeoutInSeconds" />
+          <zeebe:input source="={&#34;name&#34;: &#34;Msg_Del_Decline&#34;, &#34;correlationKey&#34;: string(prosumerId)}" target="body" />
+          <zeebe:input source="=false" target="ignoreNullValues" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="12" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.HttpJson.v2" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_De_4a</bpmn:incoming>
+      <bpmn:outgoing>Flow_De_5a</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmn:message id="Msg_Del_Decline" name="Msg_Del_Decline">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=string(prosumerId)" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Msg_Del_Declare" name="Msg_Del_Declare">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=string(prosumerId)" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Msg_Del_Accept" name="Msg_Del_Accept">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=string(prosumerId)" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Msg_Del_Reject" name="Msg_Del_Reject">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=string(prosumerId)" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Del">
+    <bpmndi:BPMNPlane id="BPMNPlane_Del" bpmnElement="Collaboration_Del">
+      <bpmndi:BPMNShape id="Participant_DelInit_di" bpmnElement="Participant_DelInit" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1480" height="280" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_DelInit_di" bpmnElement="Lane_DelInit" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1450" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvt_DelInit_di" bpmnElement="StartEvt_DelInit">
+        <dc:Bounds x="242" y="202" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="224" y="245" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_SelectProsumer_di" bpmnElement="Task_Del_SelectProsumer">
+        <dc:Bounds x="330" y="180" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_SendReq_di" bpmnElement="Task_Del_SendReq">
+        <dc:Bounds x="490" y="180" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Del_WaitResp_di" bpmnElement="GW_Del_WaitResp">
+        <dc:Bounds x="655" y="195" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="559" y="206" width="86" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="MsgCatch_Del_Decline_di" bpmnElement="MsgCatch_Del_Decline">
+        <dc:Bounds x="752" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="729" y="98" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvt_Del_Declined_di" bpmnElement="EndEvt_Del_Declined">
+        <dc:Bounds x="852" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="846" y="165" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Del_Decision_di" bpmnElement="GW_Del_Decision" isMarkerVisible="true">
+        <dc:Bounds x="1005" y="265" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="982" y="311" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvt_Del_Done_di" bpmnElement="EndEvt_Del_Done">
+        <dc:Bounds x="1272" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1273" y="255" width="30" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_Confirm_di" bpmnElement="Task_Del_Confirm">
+        <dc:Bounds x="840" y="236" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="MsgCatch_Del_Declare_di" bpmnElement="MsgCatch_Del_Declare">
+        <dc:Bounds x="752" y="258" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="728" y="234" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_Accept_di" bpmnElement="Task_Del_Accept">
+        <dc:Bounds x="1100" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_Reject_di" bpmnElement="Task_Del_Reject">
+        <dc:Bounds x="1100" y="243" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvt_Del_Rejected_di" bpmnElement="EndEvt_Del_Rejected">
+        <dc:Bounds x="1272" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1268" y="325" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Di_1_di" bpmnElement="Flow_Di_1">
+        <di:waypoint x="278" y="220" />
+        <di:waypoint x="330" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_2_di" bpmnElement="Flow_Di_2">
+        <di:waypoint x="430" y="220" />
+        <di:waypoint x="490" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_3_di" bpmnElement="Flow_Di_3">
+        <di:waypoint x="590" y="220" />
+        <di:waypoint x="655" y="213" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_4a_di" bpmnElement="Flow_Di_4a">
+        <di:waypoint x="673" y="195" />
+        <di:waypoint x="673" y="140" />
+        <di:waypoint x="752" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_4b_di" bpmnElement="Flow_Di_4b">
+        <di:waypoint x="673" y="231" />
+        <di:waypoint x="673" y="276" />
+        <di:waypoint x="752" y="276" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_5a_di" bpmnElement="Flow_Di_5a">
+        <di:waypoint x="788" y="140" />
+        <di:waypoint x="852" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_5b_di" bpmnElement="Flow_Di_5b">
+        <di:waypoint x="788" y="276" />
+        <di:waypoint x="840" y="276" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_6_di" bpmnElement="Flow_Di_6">
+        <di:waypoint x="940" y="281" />
+        <di:waypoint x="1007" y="281" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_7a_di" bpmnElement="Flow_Di_7a">
+        <di:waypoint x="1023" y="265" />
+        <di:waypoint x="1023" y="160" />
+        <di:waypoint x="1100" y="160" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1052" y="170" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_7b_di" bpmnElement="Flow_Di_7b">
+        <di:waypoint x="1041" y="283" />
+        <di:waypoint x="1100" y="283" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1059" y="266" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_8a_di" bpmnElement="Flow_Di_8a">
+        <di:waypoint x="1200" y="160" />
+        <di:waypoint x="1236" y="160" />
+        <di:waypoint x="1236" y="230" />
+        <di:waypoint x="1272" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Di_8b_di" bpmnElement="Flow_Di_8b">
+        <di:waypoint x="1200" y="283" />
+        <di:waypoint x="1236" y="283" />
+        <di:waypoint x="1236" y="300" />
+        <di:waypoint x="1272" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_DelExec_di" bpmnElement="Participant_DelExec" isHorizontal="true">
+        <dc:Bounds x="160" y="420" width="1480" height="300" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_DelExec_di" bpmnElement="Lane_DelExec" isHorizontal="true">
+        <dc:Bounds x="190" y="420" width="1450" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvt_DelExec_di" bpmnElement="StartEvt_DelExec">
+        <dc:Bounds x="242" y="552" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="220" y="595" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_FetchProsumer_di" bpmnElement="Task_Del_FetchProsumer">
+        <dc:Bounds x="330" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_ReviewReq_di" bpmnElement="Task_Del_ReviewReq">
+        <dc:Bounds x="490" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvt_DelExec_Declined_di" bpmnElement="EndEvt_DelExec_Declined">
+        <dc:Bounds x="862" y="482" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="856" y="525" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_DeleteProsumer_di" bpmnElement="Task_Del_DeleteProsumer">
+        <dc:Bounds x="750" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_Declare_di" bpmnElement="Task_Del_Declare">
+        <dc:Bounds x="910" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Del_WaitResult_di" bpmnElement="GW_Del_WaitResult">
+        <dc:Bounds x="1075" y="545" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1053" y="588" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="MsgCatch_Del_Accept_di" bpmnElement="MsgCatch_Del_Accept">
+        <dc:Bounds x="1172" y="512" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1150" y="555" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="MsgCatch_Del_Reject_di" bpmnElement="MsgCatch_Del_Reject">
+        <dc:Bounds x="1172" y="592" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1150" y="635" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvt_DelExec_Accepted_di" bpmnElement="EndEvt_DelExec_Accepted">
+        <dc:Bounds x="1272" y="512" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1264" y="555" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvt_DelExec_Rejected_di" bpmnElement="EndEvt_DelExec_Rejected">
+        <dc:Bounds x="1272" y="592" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1264" y="635" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Del_Promise_di" bpmnElement="GW_Del_Promise" isMarkerVisible="true">
+        <dc:Bounds x="655" y="560" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="628" y="606" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Del_Decline_di" bpmnElement="Task_Del_Decline">
+        <dc:Bounds x="623" y="440" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_De_1_di" bpmnElement="Flow_De_1">
+        <di:waypoint x="278" y="570" />
+        <di:waypoint x="330" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_2_di" bpmnElement="Flow_De_2">
+        <di:waypoint x="430" y="570" />
+        <di:waypoint x="490" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_3_di" bpmnElement="Flow_De_3">
+        <di:waypoint x="590" y="575" />
+        <di:waypoint x="623" y="575" />
+        <di:waypoint x="623" y="576" />
+        <di:waypoint x="657" y="576" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_4a_di" bpmnElement="Flow_De_4a">
+        <di:waypoint x="673" y="560" />
+        <di:waypoint x="673" y="520" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="678" y="537" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_4b_di" bpmnElement="Flow_De_4b">
+        <di:waypoint x="689" y="576" />
+        <di:waypoint x="750" y="576" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="710" y="559" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_5a_di" bpmnElement="Flow_De_5a">
+        <di:waypoint x="723" y="480" />
+        <di:waypoint x="793" y="480" />
+        <di:waypoint x="793" y="500" />
+        <di:waypoint x="862" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_5b_di" bpmnElement="Flow_De_5b">
+        <di:waypoint x="850" y="570" />
+        <di:waypoint x="910" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_6_di" bpmnElement="Flow_De_6">
+        <di:waypoint x="1010" y="570" />
+        <di:waypoint x="1075" y="563" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_7a_di" bpmnElement="Flow_De_7a">
+        <di:waypoint x="1093" y="545" />
+        <di:waypoint x="1093" y="530" />
+        <di:waypoint x="1172" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_7b_di" bpmnElement="Flow_De_7b">
+        <di:waypoint x="1093" y="581" />
+        <di:waypoint x="1093" y="610" />
+        <di:waypoint x="1172" y="610" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_8a_di" bpmnElement="Flow_De_8a">
+        <di:waypoint x="1208" y="530" />
+        <di:waypoint x="1272" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_De_8b_di" bpmnElement="Flow_De_8b">
+        <di:waypoint x="1208" y="610" />
+        <di:waypoint x="1272" y="610" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MsgFlow_Del_Req_di" bpmnElement="MsgFlow_Del_Req">
+        <di:waypoint x="540" y="260" />
+        <di:waypoint x="540" y="400" />
+        <di:waypoint x="260" y="400" />
+        <di:waypoint x="260" y="552" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MsgFlow_Del_Decline_di" bpmnElement="MsgFlow_Del_Decline">
+        <di:waypoint x="673" y="440" />
+        <di:waypoint x="673" y="390" />
+        <di:waypoint x="720" y="390" />
+        <di:waypoint x="720" y="140" />
+        <di:waypoint x="752" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MsgFlow_Del_Declare_di" bpmnElement="MsgFlow_Del_Declare">
+        <di:waypoint x="960" y="530" />
+        <di:waypoint x="960" y="390" />
+        <di:waypoint x="770" y="390" />
+        <di:waypoint x="770" y="294" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MsgFlow_Del_Accept_di" bpmnElement="MsgFlow_Del_Accept">
+        <di:waypoint x="1200" y="160" />
+        <di:waypoint x="1220" y="160" />
+        <di:waypoint x="1220" y="530" />
+        <di:waypoint x="1208" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MsgFlow_Del_Reject_di" bpmnElement="MsgFlow_Del_Reject">
+        <di:waypoint x="1130" y="323" />
+        <di:waypoint x="1130" y="610" />
+        <di:waypoint x="1172" y="610" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

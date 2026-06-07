@@ -1,0 +1,17 @@
+{
+  "components": [
+    {
+      "label": "Grid zone created successfully. Accept to close.",
+      "type": "checkbox",
+      "id": "Field_GZ_Accept",
+      "key": "accept",
+      "defaultValue": true
+    }
+  ],
+  "type": "default",
+  "id": "Form_Productok_GridZoneCreation",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

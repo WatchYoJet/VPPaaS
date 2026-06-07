@@ -1,0 +1,17 @@
+{
+  "components": [
+    {
+      "label": "Asset Link ID",
+      "type": "number",
+      "id": "Field_DelALId",
+      "key": "assetLinkID",
+      "validate": { "required": true }
+    }
+  ],
+  "type": "default",
+  "id": "Form_Request_AssetLinkDel",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

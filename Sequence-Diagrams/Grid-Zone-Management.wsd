@@ -13,21 +13,28 @@ VPPaaS->VPPaaS: Verify if operation is possible\n(promise: true/false)
 
 alt promise = true
   VPPaaS-->Camunda: Promise
-  VPPaaS->Kong: POST/PUT/DELETE /GridZone
-  Kong->Service: Forward Request
-  activate Service
+  Camunda->UO: Confirm operation order\n(accept: true/false)
+  UO->Camunda: Submit decision
 
-  note right of Service: Grid Zone operations:\n- Create zone under a UtilityOperator\n- Update maxCapacity, boundaries\n- Set safetyThreshold (kW stress limit)\n- Set postalCode (for neighbour detection)
+  alt accept = true
+    Camunda-->VPPaaS: Accept
+    VPPaaS->Kong: POST/PUT/DELETE /GridZone
+    Kong->Service: Forward Request
+    activate Service
 
-  Service->Database: Read/Write GridZone data\n(gridZoneId, utilityOperatorId,\nmaxCapacity, boundaries,\nsafetyThreshold, postalCode)
-  Database-->Service: Result
-  Service-->Kong: Response
-  deactivate Service
-  Kong-->VPPaaS: Response
-  VPPaaS-->Camunda: Declare (result)
-  Camunda->UO: Check Grid Zone order\n(confirmed)
-  UO->Camunda: Accept
-  Camunda-->VPPaaS: Accept
+    note right of Service: Grid Zone operations:\n- Create zone under a UtilityOperator\n- Update maxCapacity, boundaries\n- Set safetyThreshold (kW stress limit)\n- Set postalCode (for neighbour detection)
+
+    Service->Database: Read/Write GridZone data\n(gridZoneId, utilityOperatorId,\nmaxCapacity, boundaries,\nsafetyThreshold, postalCode)
+    Database-->Service: Result
+    Service-->Kong: Response
+    deactivate Service
+    Kong-->VPPaaS: Response
+    VPPaaS-->Camunda: Declare (done)
+  else accept = false
+    Camunda-->VPPaaS: Decline
+    note right of VPPaaS: Operation cancelled — data unchanged
+  end
+
 else promise = false
   VPPaaS-->Camunda: Decline
   Camunda->UO: Decide what to do next\n(retry or abort)

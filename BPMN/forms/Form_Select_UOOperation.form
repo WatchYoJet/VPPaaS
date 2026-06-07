@@ -1,0 +1,21 @@
+{
+  "components": [
+    {
+      "label": "Operation",
+      "type": "select",
+      "id": "Field_SelectUOOp",
+      "key": "operation",
+      "values": [
+        { "label": "Create Utility Operator", "value": "create" },
+        { "label": "Delete Utility Operator", "value": "delete" }
+      ],
+      "validate": { "required": true }
+    }
+  ],
+  "type": "default",
+  "id": "Form_Select_UOOperation",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

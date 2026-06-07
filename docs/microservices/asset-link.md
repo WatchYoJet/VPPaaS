@@ -151,6 +151,12 @@ Returns `204 No Content` on success, or `404 Not Found` if the ID does not exist
 
 Deletes an asset link by ID.
 
+In addition to removing the database record, this endpoint:
+1. Deletes the Kafka topic `{assetLinkId}-{utilityOperatorName}` associated with the link.
+2. Sends `DELETE /Telemetry/Consume/{topicName}` to the Telemetry service to stop the background consumer thread.
+
+Both cleanup steps are best-effort: failures (e.g., topic already gone, consumer not running) are logged but do not prevent the deletion from completing.
+
 No payload is required for this endpoint.
 
 > <details>

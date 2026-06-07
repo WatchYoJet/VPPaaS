@@ -27,4 +27,11 @@ class GridBalancingResourceTest {
             .contentType(ContentType.JSON)
             .body(notNullValue());
     }
+
+    @Test
+    void act_recommendationNotFound_returns404() {
+        given()
+            .when().post("/GridBalancing/act/99999")
+            .then().statusCode(404);
+    }
 }

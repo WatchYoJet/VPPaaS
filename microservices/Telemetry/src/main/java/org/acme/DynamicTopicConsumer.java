@@ -41,7 +41,7 @@ public class DynamicTopicConsumer extends Thread  {
             try (Consumer<String, String> consumer = new KafkaConsumer<>(properties)) {
                 consumer.subscribe(Collections.singletonList(topic));
     
-                while (true) {
+                while (!Thread.currentThread().isInterrupted()) {
                     ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
                     for (ConsumerRecord<String, String> record : records)
                     {

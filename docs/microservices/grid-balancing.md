@@ -18,6 +18,7 @@ This endpoint is also triggered automatically whenever an `energy-discharged-by-
 
 - [GET /GridBalancing](#get-gridbalancing)
 - [POST /GridBalancing/recommend](#post-gridbalancingrecommend)
+- [POST /GridBalancing/act/{id}](#post-gridbalancingactid)
 
 </details>
 
@@ -49,10 +50,13 @@ Returns a JSON array of recommendation records:
     "deficitZoneId": <string>,
     "surplusZoneId": <string>,
     "recommendedActionKw": <number>,
-    "timestamp": <string>
+    "timestamp": <string>,
+    "actioned": <boolean>
   }
 ]
 ```
+
+`actioned` is `false` until the recommendation is executed via `POST /GridBalancing/act/{id}`, after which it becomes `true`.
 
 ## POST /GridBalancing/recommend
 
@@ -79,6 +83,7 @@ Returns a JSON object with the list of recommendations generated in this cycle:
 {
   "recommendations": [
     {
+      "id": <integer>,
       "deficitZoneId": <string>,
       "surplusZoneId": <string>,
       "recommendedActionKw": <number>,
@@ -88,4 +93,45 @@ Returns a JSON object with the list of recommendations generated in this cycle:
 }
 ```
 
-An empty `recommendations` array means no zone pairs met the balancing criteria at the time of the request.
+Each recommendation includes its database `id`, which is the value to pass to `POST /GridBalancing/act/{id}` to execute it. An empty `recommendations` array means no zone pairs met the balancing criteria at the time of the request.
+
+## POST /GridBalancing/act/{id}
+
+Executes a previously generated recommendation by physically moving a prosumer's AssetLink from the surplus zone to the deficit zone.
+
+The endpoint:
+1. Loads the recommendation by `id` to get the surplus and deficit zone names.
+2. Finds the GridZone records to resolve the utility operator IDs for each zone.
+3. Finds the first AssetLink whose utility operator is in the surplus zone.
+4. Deletes that AssetLink (which removes the Kafka topic and stops the Telemetry consumer thread).
+5. Creates a new AssetLink for the same prosumer linked to the deficit zone's utility operator (which creates a new Kafka topic and starts a new Telemetry consumer thread).
+6. Marks the recommendation as `actioned = true`.
+
+No payload is required. The recommendation `id` is passed as a path parameter.
+
+> <details>
+> <summary>Curl Example</summary>
+>
+> ```bash
+> curl -X POST \
+>   'http://<KONG_HOST>:8000/GridBalancing/act/1' \
+>   -H 'accept: application/json'
+> ```
+>
+> </details>
+
+<br>
+
+Returns `200 OK` with a JSON summary of the action performed:
+
+```json
+{
+  "recommendationId": <integer>,
+  "movedProsumerId": <integer>,
+  "fromZone": <string>,
+  "toZone": <string>,
+  "newAssetLink": <string>
+}
+```
+
+Returns `404 Not Found` if the recommendation ID does not exist, if a zone named in the recommendation is not found, or if there is no AssetLink in the surplus zone to move.

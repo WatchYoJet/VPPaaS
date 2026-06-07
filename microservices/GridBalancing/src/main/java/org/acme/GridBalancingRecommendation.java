@@ -13,15 +13,18 @@ public class GridBalancingRecommendation {
     public String surplusZoneId;
     public Double recommendedActionKw;
     public LocalDateTime timestamp;
+    public Boolean actioned;
 
     public GridBalancingRecommendation() {}
 
-    public GridBalancingRecommendation(Long id, String deficitZoneId, String surplusZoneId, Double recommendedActionKw, LocalDateTime timestamp) {
+    public GridBalancingRecommendation(Long id, String deficitZoneId, String surplusZoneId,
+                                       Double recommendedActionKw, LocalDateTime timestamp, Boolean actioned) {
         this.id = id;
         this.deficitZoneId = deficitZoneId;
         this.surplusZoneId = surplusZoneId;
         this.recommendedActionKw = recommendedActionKw;
         this.timestamp = timestamp;
+        this.actioned = actioned;
     }
 
     private static GridBalancingRecommendation from(Row row) {
@@ -30,12 +33,13 @@ public class GridBalancingRecommendation {
             row.getString("deficitZoneId"),
             row.getString("surplusZoneId"),
             row.getDouble("recommendedActionKw"),
-            row.getLocalDateTime("timestamp")
+            row.getLocalDateTime("timestamp"),
+            row.getBoolean("actioned")
         );
     }
 
     public static Multi<GridBalancingRecommendation> findAll(MySQLPool client) {
-        return client.query("SELECT id, deficitZoneId, surplusZoneId, recommendedActionKw, timestamp FROM GridBalancingRecommendations ORDER BY id ASC").execute()
+        return client.query("SELECT id, deficitZoneId, surplusZoneId, recommendedActionKw, timestamp, actioned FROM GridBalancingRecommendations ORDER BY id ASC").execute()
                 .onItem().transformToMulti(set -> Multi.createFrom().iterable(set))
                 .onItem().transform(GridBalancingRecommendation::from);
     }

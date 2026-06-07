@@ -1,0 +1,38 @@
+{
+  "components": [
+    {
+      "label": "Prosumer ID",
+      "type": "number",
+      "id": "Field_UpdProsumerId",
+      "key": "prosumerId",
+      "validate": { "required": true }
+    },
+    {
+      "label": "New Name",
+      "type": "textfield",
+      "id": "Field_UpdName",
+      "key": "name",
+      "validate": { "required": true }
+    },
+    {
+      "label": "New Fiscal Number",
+      "type": "number",
+      "id": "Field_UpdFiscalNumber",
+      "key": "fiscalnumber",
+      "validate": { "required": true }
+    },
+    {
+      "label": "New Location",
+      "type": "textfield",
+      "id": "Field_UpdLocation",
+      "key": "location",
+      "validate": { "required": true }
+    }
+  ],
+  "type": "default",
+  "id": "Form_Request_ProsumerUpdate",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

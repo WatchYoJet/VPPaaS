@@ -42,7 +42,7 @@ resource "null_resource" "kafkaClusterSetup" {
     host        = aws_instance.kafka[count.index].public_dns
     user        = "ec2-user"
     private_key = file(pathexpand("~/.ssh/labsuser.pem"))
-    timeout     = "5m"
+    timeout     = "10m"
   }
 
   provisioner "remote-exec" {
@@ -69,7 +69,7 @@ resource "null_resource" "kafkaClusterSetup" {
 }
 
 resource "aws_security_group" "instance" {
-  name = "terraform-kafka-account1-${substr(random_uuid.kafka_cluster_id.result, 0, 8)}"
+  name = "terraform-kafka-account1"
   lifecycle {
     ignore_changes = all
   }

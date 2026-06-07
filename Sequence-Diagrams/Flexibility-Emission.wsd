@@ -12,7 +12,7 @@ Database-->Telemetry Service: Telemetry data
 Telemetry Service-->Flexibility Service: Response (telemetry data)
 deactivate Telemetry Service
 
-note right of Flexibility Service: Apply rules:\nsoc_percent > 90% AND peak hours → SELL\nsoc_percent < 20% → UNAVAILABLE\ngrid_frequency_hz < 49.8 Hz → EMERGENCY_DISCHARGE\nac_voltage_v > 253 V → OVERVOLTAGE_WARNING
+note right of Flexibility Service: Apply rules:\nsoc_percent > 90% AND peak hours - SELL\nsoc_percent < 20% - UNAVAILABLE\ngrid_frequency_hz < 49.8 Hz - EMERGENCY_DISCHARGE\nac_voltage_v > 253 V - OVERVOLTAGE_WARNING
 
 Flexibility Service->Database: INSERT INTO FlexibilityEvents\n(eventType, assetLinkId, gridCellId, incentiveValue, timestamp)
 Database-->Flexibility Service: OK

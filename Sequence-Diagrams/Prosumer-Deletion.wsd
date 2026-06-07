@@ -13,18 +13,25 @@ VPPaaS->VPPaaS: Verify if deletion is possible\n(promise: true/false)
 
 alt promise = true
   VPPaaS-->Camunda: Promise
-  VPPaaS->Kong: DELETE /Prosumer/{id}
-  Kong->Service: Forward Delete Request
-  activate Service
-  Service->Database: DELETE Prosumer record
-  Database-->Service: OK
-  Service-->Kong: Response
-  deactivate Service
-  Kong-->VPPaaS: Response
-  VPPaaS-->Camunda: Declare
-  Camunda->Prosumer: Check Deletion order\n(confirmed)
-  Prosumer->Camunda: Accept
-  Camunda-->VPPaaS: Accept
+  Camunda->Prosumer: Confirm deletion order\n(accept: true/false)
+  Prosumer->Camunda: Submit decision
+
+  alt accept = true
+    Camunda-->VPPaaS: Accept
+    VPPaaS->Kong: DELETE /Prosumer/{id}
+    Kong->Service: Forward Delete Request
+    activate Service
+    Service->Database: DELETE Prosumer record
+    Database-->Service: OK
+    Service-->Kong: Response
+    deactivate Service
+    Kong-->VPPaaS: Response
+    VPPaaS-->Camunda: Declare (deleted)
+  else accept = false
+    Camunda-->VPPaaS: Decline
+    note right of VPPaaS: Deletion cancelled — record unchanged
+  end
+
 else promise = false
   VPPaaS-->Camunda: Decline
   Camunda->Prosumer: Decide what to do next\n(retry or abort)

@@ -64,7 +64,14 @@ public class GridBalancingResource {
 
     private void initdb() {
         client.query("DROP TABLE IF EXISTS GridBalancingRecommendations").execute()
-        .flatMap(r -> client.query("CREATE TABLE GridBalancingRecommendations (id SERIAL PRIMARY KEY, deficitZoneId TEXT NOT NULL, surplusZoneId TEXT NOT NULL, recommendedActionKw DOUBLE NOT NULL, timestamp DATETIME NOT NULL)").execute())
+        .flatMap(r -> client.query("CREATE TABLE GridBalancingRecommendations ("
+            + "id SERIAL PRIMARY KEY, "
+            + "deficitZoneId TEXT NOT NULL, "
+            + "surplusZoneId TEXT NOT NULL, "
+            + "recommendedActionKw DOUBLE NOT NULL, "
+            + "timestamp DATETIME NOT NULL, "
+            + "actioned BOOLEAN DEFAULT FALSE"
+            + ")").execute())
         .await().indefinitely();
     }
 
@@ -89,6 +96,82 @@ public class GridBalancingResource {
             JSONObject result = new JSONObject();
             result.put("recommendations", new JSONArray(recommendations));
             return Response.ok(result.toString()).build();
+        } catch (Exception e) {
+            return Response.serverError().entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    @POST
+    @Path("act/{id}")
+    @Blocking
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response act(@PathParam("id") Long id) {
+        try {
+            HttpClient http = HttpClient.newHttpClient();
+
+            // Load recommendation from DB
+            var recRows = client.preparedQuery(
+                "SELECT deficitZoneId, surplusZoneId FROM GridBalancingRecommendations WHERE id = ?")
+                .execute(Tuple.of(id)).await().indefinitely();
+            if (!recRows.iterator().hasNext())
+                return Response.status(Response.Status.NOT_FOUND)
+                               .entity("{\"error\":\"recommendation not found\"}").build();
+            var rec = recRows.iterator().next();
+            String surplusZone = rec.getString("surplusZoneId");
+            String deficitZone = rec.getString("deficitZoneId");
+
+            // Fetch all GridZones once (utilityOperatorId field confirmed in GridZone.java)
+            JSONArray zones = fetchJson(http, utilityOperatorUrl + "/GridZone");
+            Long surplusOpId = null, deficitOpId = null;
+            for (int i = 0; i < zones.length(); i++) {
+                JSONObject z = zones.getJSONObject(i);
+                if (surplusZone.equals(z.getString("name"))) surplusOpId = z.getLong("utilityOperatorId");
+                if (deficitZone.equals(z.getString("name"))) deficitOpId = z.getLong("utilityOperatorId");
+            }
+            if (surplusOpId == null || deficitOpId == null)
+                return Response.status(Response.Status.NOT_FOUND)
+                               .entity("{\"error\":\"zone not found\"}").build();
+
+            // Find first AssetLink in surplus zone
+            JSONArray links = fetchJson(http, assetLinkUrl + "/AssetLink");
+            Long assetLinkId = null, prosumerId = null;
+            for (int i = 0; i < links.length(); i++) {
+                JSONObject al = links.getJSONObject(i);
+                if (surplusOpId.equals(al.getLong("idUtilityOperator"))) {
+                    assetLinkId = al.getLong("id");
+                    prosumerId  = al.getLong("idProsumer");
+                    break;
+                }
+            }
+            if (assetLinkId == null)
+                return Response.status(Response.Status.NOT_FOUND)
+                               .entity("{\"error\":\"no AssetLink found in surplus zone\"}").build();
+
+            // Delete surplus AssetLink (triggers Kafka topic + Telemetry cleanup via fixed DELETE)
+            http.send(HttpRequest.newBuilder()
+                .uri(URI.create(assetLinkUrl + "/AssetLink/" + assetLinkId))
+                .DELETE().build(), HttpResponse.BodyHandlers.ofString());
+
+            // Create new AssetLink in deficit zone (triggers new Kafka topic + Telemetry consumer)
+            String body = "{\"idProsumer\":" + prosumerId + ",\"idUtilityOperator\":" + deficitOpId + "}";
+            var createResp = http.send(HttpRequest.newBuilder()
+                .uri(URI.create(assetLinkUrl + "/AssetLink"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body)).build(),
+                HttpResponse.BodyHandlers.ofString());
+
+            // Mark recommendation as actioned
+            client.preparedQuery("UPDATE GridBalancingRecommendations SET actioned = true WHERE id = ?")
+                .execute(Tuple.of(id)).await().indefinitely();
+
+            JSONObject result = new JSONObject();
+            result.put("recommendationId", id);
+            result.put("movedProsumerId", prosumerId);
+            result.put("fromZone", surplusZone);
+            result.put("toZone", deficitZone);
+            result.put("newAssetLink", createResp.headers().firstValue("Location").orElse("created"));
+            return Response.ok(result.toString()).build();
+
         } catch (Exception e) {
             return Response.serverError().entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
@@ -138,10 +221,7 @@ public class GridBalancingResource {
                 postalCodeByZone.put(name, z.isNull("postalCode") ? null : z.getString("postalCode"));
             }
 
-            // 3. Fetch AssetLinks (available for balancing actions).
-            fetchJson(http, assetLinkUrl + "/AssetLink");
-
-            // 4. Produce recommendations: deficit zone → nearest surplus zone.
+            // 3. Produce recommendations: deficit zone → nearest surplus zone.
             Properties props = new Properties();
             props.put("bootstrap.servers", kafkaServers);
             props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
@@ -170,11 +250,15 @@ public class GridBalancingResource {
 
                         double actionKw = defLoad - 0.7 * defThreshold;
 
-                        client.preparedQuery("INSERT INTO GridBalancingRecommendations(deficitZoneId, surplusZoneId, recommendedActionKw, timestamp) VALUES (?,?,?,?)")
-                                .execute(Tuple.of(defZone, surZone, actionKw, now))
-                                .await().indefinitely();
+                        Long insertedId = client.preparedQuery(
+                            "INSERT INTO GridBalancingRecommendations(deficitZoneId,surplusZoneId,recommendedActionKw,timestamp,actioned) VALUES (?,?,?,?,false)")
+                            .execute(Tuple.of(defZone, surZone, actionKw, now))
+                            .onItem().transformToUni(r -> client.query("SELECT LAST_INSERT_ID() as lastId").execute())
+                            .onItem().transform(r -> r.iterator().next().getLong("lastId"))
+                            .await().indefinitely();
 
                         JSONObject rec = new JSONObject();
+                        rec.put("id", insertedId);
                         rec.put("deficitZoneId", defZone);
                         rec.put("surplusZoneId", surZone);
                         rec.put("recommendedActionKw", actionKw);

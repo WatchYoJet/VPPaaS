@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_UtilityOperatorHub" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="UtilityOperatorHub" name="Utility Operator Hub" isExecutable="true">
+    <bpmn:startEvent id="Start_UOHub" name="Start">
+      <bpmn:outgoing>Flow_UOHub_toChoose</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_UOHub_ChooseOperation" name="Choose Utility Operator Operation">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="Form_Select_UOOperation" />
+        <zeebe:assignmentDefinition assignee="demo" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_UOHub_toChoose</bpmn:incoming>
+      <bpmn:outgoing>Flow_UOHub_toGW</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_UOHub_OperationChoice" name="Operation?">
+      <bpmn:incoming>Flow_UOHub_toGW</bpmn:incoming>
+      <bpmn:outgoing>Flow_UOHub_toCreate</bpmn:outgoing>
+      <bpmn:outgoing>Flow_UOHub_toDelete</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_UOHub_Create" name="Create Utility Operator">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="UtilityOperatorManagement" propagateAllChildVariables="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_UOHub_toCreate</bpmn:incoming>
+      <bpmn:outgoing>Flow_UOHub_Create_toEnd</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_UOHub_Delete" name="Delete Utility Operator">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="UtilityOperatorDeletion" propagateAllChildVariables="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_UOHub_toDelete</bpmn:incoming>
+      <bpmn:outgoing>Flow_UOHub_Delete_toEnd</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_UOHub" name="End">
+      <bpmn:incoming>Flow_UOHub_Create_toEnd</bpmn:incoming>
+      <bpmn:incoming>Flow_UOHub_Delete_toEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_UOHub_toChoose" sourceRef="Start_UOHub" targetRef="Task_UOHub_ChooseOperation" />
+    <bpmn:sequenceFlow id="Flow_UOHub_toGW" sourceRef="Task_UOHub_ChooseOperation" targetRef="GW_UOHub_OperationChoice" />
+    <bpmn:sequenceFlow id="Flow_UOHub_toCreate" name="create" sourceRef="GW_UOHub_OperationChoice" targetRef="Call_UOHub_Create">
+      <bpmn:conditionExpression>=operation = "create"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_UOHub_toDelete" name="delete" sourceRef="GW_UOHub_OperationChoice" targetRef="Call_UOHub_Delete">
+      <bpmn:conditionExpression>=operation = "delete"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_UOHub_Create_toEnd" sourceRef="Call_UOHub_Create" targetRef="End_UOHub" />
+    <bpmn:sequenceFlow id="Flow_UOHub_Delete_toEnd" sourceRef="Call_UOHub_Delete" targetRef="End_UOHub" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_UOHub">
+    <bpmndi:BPMNPlane id="BPMNPlane_UOHub" bpmnElement="UtilityOperatorHub">
+      <bpmndi:BPMNShape id="Shape_Start_UOHub" bpmnElement="Start_UOHub">
+        <dc:Bounds x="152" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="158" y="235" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_UOHub_ChooseOperation" bpmnElement="Task_UOHub_ChooseOperation">
+        <dc:Bounds x="240" y="170" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_UOHub_OperationChoice" bpmnElement="GW_UOHub_OperationChoice" isMarkerVisible="true">
+        <dc:Bounds x="455" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="450" y="242" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_UOHub_Create" bpmnElement="Call_UOHub_Create">
+        <dc:Bounds x="560" y="100" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_UOHub_Delete" bpmnElement="Call_UOHub_Delete">
+        <dc:Bounds x="560" y="270" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_UOHub" bpmnElement="End_UOHub">
+        <dc:Bounds x="782" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="789" y="235" width="22" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_UOHub_toChoose" bpmnElement="Flow_UOHub_toChoose">
+        <di:waypoint x="188" y="210" />
+        <di:waypoint x="240" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_UOHub_toGW" bpmnElement="Flow_UOHub_toGW">
+        <di:waypoint x="400" y="210" />
+        <di:waypoint x="455" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_UOHub_toCreate" bpmnElement="Flow_UOHub_toCreate">
+        <di:waypoint x="480" y="185" />
+        <di:waypoint x="480" y="140" />
+        <di:waypoint x="560" y="140" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="490" y="155" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_UOHub_toDelete" bpmnElement="Flow_UOHub_toDelete">
+        <di:waypoint x="480" y="235" />
+        <di:waypoint x="480" y="310" />
+        <di:waypoint x="560" y="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="490" y="265" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_UOHub_Create_toEnd" bpmnElement="Flow_UOHub_Create_toEnd">
+        <di:waypoint x="720" y="140" />
+        <di:waypoint x="800" y="140" />
+        <di:waypoint x="800" y="192" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_UOHub_Delete_toEnd" bpmnElement="Flow_UOHub_Delete_toEnd">
+        <di:waypoint x="720" y="310" />
+        <di:waypoint x="800" y="310" />
+        <di:waypoint x="800" y="228" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

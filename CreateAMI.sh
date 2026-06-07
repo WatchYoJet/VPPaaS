@@ -57,6 +57,10 @@ create_ami() {
   ssh -o StrictHostKeyChecking=no -i "$pem_file" ec2-user@"$PUBLIC_DNS" \
     "sudo yum install -y docker && sudo systemctl enable docker && sudo service docker start"
 
+  echo "--- Cleaning cloud-init state so new instances boot cleanly ---"
+  ssh -o StrictHostKeyChecking=no -i "$pem_file" ec2-user@"$PUBLIC_DNS" \
+    "sudo cloud-init clean --logs && sudo rm -f /etc/cloud/cloud.cfg.d/99-fake-cloud.cfg"
+
   local AMI_NAME="vppas-docker-base-${sg_suffix}-$(date +%Y%m%d-%H%M)"
   echo "--- Creating AMI: $AMI_NAME ---"
   local AMI_ID

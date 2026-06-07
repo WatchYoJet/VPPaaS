@@ -1,0 +1,16 @@
+{
+  "components": [
+    {
+      "label": "Review the grid zone creation request. Do you approve?",
+      "type": "checkbox",
+      "id": "Field_GZ_Promise",
+      "key": "promise"
+    }
+  ],
+  "type": "default",
+  "id": "Form_Promise_GridZoneCreation",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

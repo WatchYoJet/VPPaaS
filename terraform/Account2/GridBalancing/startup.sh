@@ -1,4 +1,6 @@
 #!/bin/bash
+exec > /tmp/startup.log 2>&1
+set -xe
 sudo service docker start
 sudo docker login -u "${docker_username}" -p "${docker_password}"
 

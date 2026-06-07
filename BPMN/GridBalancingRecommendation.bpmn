@@ -8,11 +8,17 @@
       <bpmn:lane id="Lane_GB_Initiator" name="VPP Operator - Initiator TK01">
         <bpmn:flowNodeRef>Event_GB_Start</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_GB_RequestRecommendation</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Activity_GB_ConfirmResult</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_GB_ReviewRecommendations</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_GB_Accept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_GB_ConfirmAction</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_GB_Proceed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_GB_End_Cancelled</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Event_GB_End</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_GB_End_Rejected</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_GB_Executor" name="VPP Operator - Executor TK01">
         <bpmn:flowNodeRef>Activity_GB_Recommend</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_GB_ActOnRecommendation</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
     <bpmn:startEvent id="Event_GB_Start">
@@ -36,9 +42,49 @@
           <zeebe:input source="http://KONG_DNS_PLACEHOLDER:8000/GridBalancing/recommend" target="url" />
           <zeebe:input source="={&#34;Content-Type&#34;:&#34;application/json&#34;,&#34;accept&#34;:&#34;application/json&#34;}" target="headers" />
           <zeebe:input source="={}" target="body" />
-          <zeebe:input source="=false" target="storeResponse" />
           <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
           <zeebe:input source="=20" target="readTimeoutInSeconds" />
+          <zeebe:input source="=false" target="ignoreNullValues" />
+          <zeebe:output source="=httpResponse.body.recommendations" target="recommendations" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="12" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.HttpJson.v2" />
+          <zeebe:header key="resultVariable" value="httpResponse" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_GB_Proceed_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_GB_Recommend_Review</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_GB_ReviewRecommendations" name="Review Recommendations">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:assignmentDefinition assignee="demo" />
+        <zeebe:formDefinition formId="Form_Review_GridBalancing" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=recommendations" target="recommendations" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_GB_Recommend_Review</bpmn:incoming>
+      <bpmn:outgoing>Flow_GB_Review_Gateway</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_GB_Accept" name="Accept?">
+      <bpmn:incoming>Flow_GB_Review_Gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_GB_Accept_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_GB_Accept_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_GB_ActOnRecommendation" name="Act on Recommendation" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="12">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="=&#34;http://KONG_DNS_PLACEHOLDER:8000/GridBalancing/act/&#34; + string(selectedRecommendationId)" target="url" />
+          <zeebe:input source="={&#34;Content-Type&#34;:&#34;application/json&#34;,&#34;accept&#34;:&#34;application/json&#34;}" target="headers" />
+          <zeebe:input source="={}" target="body" />
+          <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=60" target="readTimeoutInSeconds" />
           <zeebe:input source="=false" target="ignoreNullValues" />
         </zeebe:ioMapping>
         <zeebe:taskHeaders>
@@ -47,38 +93,63 @@
           <zeebe:header key="retryBackoff" value="PT0S" />
         </zeebe:taskHeaders>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_GB_Request_Recommend</bpmn:incoming>
-      <bpmn:outgoing>Flow_GB_Recommend_Confirm</bpmn:outgoing>
+      <bpmn:incoming>Flow_GB_Accept_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_GB_Act_Confirm</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:userTask id="Activity_GB_ConfirmResult" name="Confirm Recommendations Generated">
+    <bpmn:userTask id="Activity_GB_ConfirmAction" name="Confirm Action Executed">
       <bpmn:extensionElements>
         <zeebe:userTask />
         <zeebe:assignmentDefinition assignee="demo" />
-        <zeebe:formDefinition formId="Form_Confirm_GridBalancing" />
+        <zeebe:formDefinition formId="Form_ConfirmAction_GridBalancing" />
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_GB_Recommend_Confirm</bpmn:incoming>
+      <bpmn:incoming>Flow_GB_Act_Confirm</bpmn:incoming>
       <bpmn:outgoing>Flow_GB_Confirm_End</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:endEvent id="Event_GB_End">
+    <bpmn:endEvent id="Event_GB_End" name="Recommendation Executed">
       <bpmn:incoming>Flow_GB_Confirm_End</bpmn:incoming>
     </bpmn:endEvent>
+    <bpmn:endEvent id="Event_GB_End_Rejected" name="Recommendation Rejected">
+      <bpmn:incoming>Flow_GB_Accept_No</bpmn:incoming>
+    </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_GB_Start_Request" sourceRef="Event_GB_Start" targetRef="Activity_GB_RequestRecommendation" />
-    <bpmn:sequenceFlow id="Flow_GB_Request_Recommend" sourceRef="Activity_GB_RequestRecommendation" targetRef="Activity_GB_Recommend" />
-    <bpmn:sequenceFlow id="Flow_GB_Recommend_Confirm" sourceRef="Activity_GB_Recommend" targetRef="Activity_GB_ConfirmResult" />
-    <bpmn:sequenceFlow id="Flow_GB_Confirm_End" sourceRef="Activity_GB_ConfirmResult" targetRef="Event_GB_End" />
+    <bpmn:exclusiveGateway id="Gateway_GB_Proceed" name="Proceed?">
+      <bpmn:incoming>Flow_GB_Request_Recommend</bpmn:incoming>
+      <bpmn:outgoing>Flow_GB_Proceed_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_GB_Proceed_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_GB_End_Cancelled" name="Process Cancelled">
+      <bpmn:incoming>Flow_GB_Proceed_No</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_GB_Request_Recommend" sourceRef="Activity_GB_RequestRecommendation" targetRef="Gateway_GB_Proceed" />
+    <bpmn:sequenceFlow id="Flow_GB_Proceed_Yes" name="Yes" sourceRef="Gateway_GB_Proceed" targetRef="Activity_GB_Recommend">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=proceed = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_GB_Proceed_No" name="No" sourceRef="Gateway_GB_Proceed" targetRef="Event_GB_End_Cancelled">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=proceed = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_GB_Recommend_Review" sourceRef="Activity_GB_Recommend" targetRef="Activity_GB_ReviewRecommendations" />
+    <bpmn:sequenceFlow id="Flow_GB_Review_Gateway" sourceRef="Activity_GB_ReviewRecommendations" targetRef="Gateway_GB_Accept" />
+    <bpmn:sequenceFlow id="Flow_GB_Accept_Yes" name="Yes" sourceRef="Gateway_GB_Accept" targetRef="Activity_GB_ActOnRecommendation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=accept = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_GB_Accept_No" name="No" sourceRef="Gateway_GB_Accept" targetRef="Event_GB_End_Rejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=accept = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_GB_Act_Confirm" sourceRef="Activity_GB_ActOnRecommendation" targetRef="Activity_GB_ConfirmAction" />
+    <bpmn:sequenceFlow id="Flow_GB_Confirm_End" sourceRef="Activity_GB_ConfirmAction" targetRef="Event_GB_End" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_GridBalancingRecommendation">
     <bpmndi:BPMNPlane id="BPMNPlane_GridBalancingRecommendation" bpmnElement="Collaboration_GridBalancingRecommendation">
       <bpmndi:BPMNShape id="Participant_GridBalancingRecommendation_di" bpmnElement="Participant_GridBalancingRecommendation" isHorizontal="true">
-        <dc:Bounds x="160" y="80" width="900" height="340" />
+        <dc:Bounds x="160" y="80" width="1460" height="340" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_GB_Initiator_di" bpmnElement="Lane_GB_Initiator" isHorizontal="true">
-        <dc:Bounds x="190" y="80" width="870" height="170" />
+        <dc:Bounds x="190" y="80" width="1430" height="170" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_GB_Executor_di" bpmnElement="Lane_GB_Executor" isHorizontal="true">
-        <dc:Bounds x="190" y="250" width="870" height="170" />
+        <dc:Bounds x="190" y="250" width="1430" height="170" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_GB_Start_di" bpmnElement="Event_GB_Start">
@@ -89,33 +160,94 @@
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_GB_Recommend_di" bpmnElement="Activity_GB_Recommend" bioc:stroke="#0d4372" bioc:fill="#bbdefb" color:background-color="#bbdefb" color:border-color="#0d4372">
-        <dc:Bounds x="530" y="295" width="100" height="80" />
+        <dc:Bounds x="510" y="295" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_GB_ConfirmResult_di" bpmnElement="Activity_GB_ConfirmResult">
-        <dc:Bounds x="730" y="125" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_GB_ReviewRecommendations_di" bpmnElement="Activity_GB_ReviewRecommendations">
+        <dc:Bounds x="690" y="125" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_GB_Accept_di" bpmnElement="Gateway_GB_Accept" isMarkerVisible="true">
+        <dc:Bounds x="865" y="140" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="868" y="116" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_GB_ActOnRecommendation_di" bpmnElement="Activity_GB_ActOnRecommendation" bioc:stroke="#0d4372" bioc:fill="#bbdefb" color:background-color="#bbdefb" color:border-color="#0d4372">
+        <dc:Bounds x="1010" y="295" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_GB_ConfirmAction_di" bpmnElement="Activity_GB_ConfirmAction">
+        <dc:Bounds x="1190" y="125" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_GB_End_di" bpmnElement="Event_GB_End">
-        <dc:Bounds x="882" y="147" width="36" height="36" />
+        <dc:Bounds x="1372" y="147" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1349" y="190" width="82" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_GB_End_Rejected_di" bpmnElement="Event_GB_End_Rejected">
+        <dc:Bounds x="872" y="57" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="849" y="27" width="82" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_GB_Start_Request_di" bpmnElement="Flow_GB_Start_Request">
         <di:waypoint x="278" y="165" />
         <di:waypoint x="330" y="165" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_GB_Proceed_di" bpmnElement="Gateway_GB_Proceed" isMarkerVisible="true">
+        <dc:Bounds x="485" y="140" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="483" y="116" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_GB_End_Cancelled_di" bpmnElement="Event_GB_End_Cancelled">
+        <dc:Bounds x="492" y="47" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="468" y="17" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_GB_Request_Recommend_di" bpmnElement="Flow_GB_Request_Recommend">
-        <di:waypoint x="380" y="205" />
-        <di:waypoint x="380" y="335" />
-        <di:waypoint x="530" y="335" />
+        <di:waypoint x="430" y="165" />
+        <di:waypoint x="485" y="165" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_GB_Recommend_Confirm_di" bpmnElement="Flow_GB_Recommend_Confirm">
-        <di:waypoint x="580" y="295" />
-        <di:waypoint x="580" y="165" />
-        <di:waypoint x="730" y="165" />
+      <bpmndi:BPMNEdge id="Flow_GB_Proceed_Yes_di" bpmnElement="Flow_GB_Proceed_Yes">
+        <di:waypoint x="510" y="190" />
+        <di:waypoint x="510" y="335" />
+        <di:waypoint x="510" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GB_Proceed_No_di" bpmnElement="Flow_GB_Proceed_No">
+        <di:waypoint x="510" y="140" />
+        <di:waypoint x="510" y="83" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GB_Recommend_Review_di" bpmnElement="Flow_GB_Recommend_Review">
+        <di:waypoint x="560" y="295" />
+        <di:waypoint x="560" y="165" />
+        <di:waypoint x="690" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GB_Review_Gateway_di" bpmnElement="Flow_GB_Review_Gateway">
+        <di:waypoint x="790" y="165" />
+        <di:waypoint x="865" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GB_Accept_Yes_di" bpmnElement="Flow_GB_Accept_Yes">
+        <di:waypoint x="915" y="165" />
+        <di:waypoint x="1060" y="165" />
+        <di:waypoint x="1060" y="295" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GB_Accept_No_di" bpmnElement="Flow_GB_Accept_No">
+        <di:waypoint x="890" y="140" />
+        <di:waypoint x="890" y="93" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GB_Act_Confirm_di" bpmnElement="Flow_GB_Act_Confirm">
+        <di:waypoint x="1060" y="295" />
+        <di:waypoint x="1060" y="165" />
+        <di:waypoint x="1190" y="165" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_GB_Confirm_End_di" bpmnElement="Flow_GB_Confirm_End">
-        <di:waypoint x="830" y="165" />
-        <di:waypoint x="882" y="165" />
+        <di:waypoint x="1290" y="165" />
+        <di:waypoint x="1372" y="165" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

@@ -24,7 +24,7 @@ Registers a consumer for the topic `test-topic-junit`. Verifies HTTP 200. A back
 
 ## Test cases — TelemetrySimulatorTest
 
-This test verifies the full end-to-end telemetry ingestion path: Simulator → Kafka → Telemetry service → Database.
+This test verifies the full end-to-end telemetry ingestion path: Simulator - Kafka - Telemetry service - Database.
 
 **Prerequisites:**
 - Docker must be running (Quarkus DevServices provisions Kafka automatically).

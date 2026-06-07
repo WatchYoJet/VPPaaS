@@ -1,0 +1,51 @@
+title Grid Balancing Act Business Process
+
+participant Kong
+participant "Grid Balancing Service" as Grid
+participant "AssetLink Service" as AssetLink
+participant "Telemetry Service" as Telemetry
+participant Kafka
+participant Database
+
+note over Kong,Database: Triggered by POST /GridBalancing/act/{recommendationId}
+
+Kong->Grid: Forward Request
+activate Grid
+
+Grid->Database: Load recommendation\n(deficitZoneId, surplusZoneId)
+Database-->Grid: Zone names
+
+Grid->Database: Resolve utilityOperatorId\nfor surplus and deficit zones
+Database-->Grid: surplusOpId, deficitOpId
+
+Grid->AssetLink: GET /AssetLink
+AssetLink-->Grid: All active links
+
+note right of Grid: Find first AssetLink\nwith idUtilityOperator = surplusOpId
+
+
+Grid->AssetLink: DELETE /AssetLink/{surplusAssetLinkId}
+activate AssetLink
+AssetLink->Kafka: Delete Kafka topic\n(surplusAssetLinkId-operatorName)
+AssetLink->Telemetry: DELETE /Telemetry/Consume/{topicName}
+Telemetry-->AssetLink: 204 (consumer stopped)
+AssetLink->Database: DELETE AssetLink record
+Database-->AssetLink: OK
+AssetLink-->Grid: 204 No Content
+deactivate AssetLink
+
+
+Grid->AssetLink: POST /AssetLink\n{idProsumer, idUtilityOperator: deficitOpId}
+activate AssetLink
+AssetLink->Database: INSERT AssetLink
+AssetLink->Kafka: Create Kafka topic\n(newAssetLinkId-deficitOperatorName)
+AssetLink->Telemetry: POST /Telemetry/Consume/{newTopicName}
+Telemetry-->AssetLink: OK (consumer started)
+AssetLink-->Grid: 201 Created
+deactivate AssetLink
+
+Grid->Database: SET actioned = true\nWHERE id = recommendationId
+Database-->Grid: OK
+
+Grid-->Kong: 200 OK\n{recommendationId, movedProsumerId, fromZone, toZone}
+deactivate Grid

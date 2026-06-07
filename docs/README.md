@@ -17,6 +17,26 @@ API documentation for each microservice. All endpoints are exposed through Kong 
 | [Flexibility Forecasting](microservices/flexibility-forecasting.md) | `/FlexibilityForecasting` | Generates AI-based flexibility forecasts using Ollama |
 | [Grid Balancing](microservices/grid-balancing.md) | `/GridBalancing` | Produces grid balancing recommendations between zones |
 
+## BPMN Processes
+
+Camunda 8 process documentation. All processes run on C8Run — Tasklist on `/tasklist`, Operate on `/operate`, login `demo`/`demo`.
+
+| Process | Description |
+|---------|-------------|
+| [Prosumer Management](bpmn/prosumer-management.md) | Two-pool negotiation handshake for prosumer creation |
+| [Utility Operator Management](bpmn/utility-operator-management.md) | Single-pool sequential flow for operator creation |
+| [Asset Link Management](bpmn/asset-link-management.md) | Three-pool collaboration linking a prosumer to an operator and provisioning Kafka |
+| [Energy Analytics](bpmn/energy-analytics.md) | Triggers analytics computation and shows the timestamp |
+| [Flexibility Emission](bpmn/flexibility-emission.md) | Triggers flexibility event evaluation and shows the event count |
+| [Flexibility Forecasting](bpmn/flexibility-forecasting.md) | AI-generated forecast with operator approve/reject |
+| [Grid Balancing Recommendation](bpmn/grid-balancing-recommendation.md) | Triggers balancing recommendation and confirms receipt |
+
+Deploy all processes with:
+
+```bash
+bash tests/deploy-bpmns.sh
+```
+
 ## Tests
 
 JUnit/QuarkusTest unit tests for each microservice. All tests run in-process against an in-memory database provided by Quarkus DevServices. Tests that depend on external services (Telemetry, Kafka, Ollama) verify that the endpoint responds with structured JSON rather than testing the full integration path.

@@ -23,6 +23,17 @@ terraform -chdir=terraform/Account1/RDS apply -auto-approve
 RDS_ENDPOINT=$(terraform -chdir=terraform/Account1/RDS output -raw address)
 
 terraform -chdir=terraform/Account1/Kafka init -reconfigure
+
+# Auto-import Kafka SG if it exists in AWS but not in Terraform state (prevents InvalidGroup.Duplicate)
+KAFKA_SG_ID=$(aws ec2 describe-security-groups \
+  --filters "Name=group-name,Values=terraform-kafka-account1" \
+  --query 'SecurityGroups[0].GroupId' \
+  --output text 2>/dev/null || true)
+if [ -n "$KAFKA_SG_ID" ] && [ "$KAFKA_SG_ID" != "None" ]; then
+  echo "Found existing Kafka SG $KAFKA_SG_ID — importing into state..."
+  terraform -chdir=terraform/Account1/Kafka import aws_security_group.instance "$KAFKA_SG_ID" 2>/dev/null || true
+fi
+
 terraform -chdir=terraform/Account1/Kafka apply -auto-approve
 KAFKA_BROKERS=$(terraform -chdir=terraform/Account1/Kafka output -raw kafka_brokers)
 
@@ -32,9 +43,15 @@ ELAPSED=0
 until nc -zw 3 "$FIRST_BROKER_HOST" 9092 2>/dev/null; do
   if [ $ELAPSED -ge 300 ]; then
     echo ""
-    echo "ERROR: Kafka broker $FIRST_BROKER_HOST:9092 not reachable after 5 minutes."
-    echo "Re-run: terraform -chdir=terraform/Account1/Kafka apply -replace='null_resource.kafkaClusterSetup[0]' -replace='null_resource.kafkaClusterSetup[1]' -replace='null_resource.kafkaClusterSetup[2]'"
-    exit 1
+    echo "Kafka not ready after 5 minutes — re-provisioning cluster setup..."
+    terraform -chdir=terraform/Account1/Kafka apply -auto-approve \
+      -replace='null_resource.kafkaClusterSetup[0]' \
+      -replace='null_resource.kafkaClusterSetup[1]' \
+      -replace='null_resource.kafkaClusterSetup[2]'
+    KAFKA_BROKERS=$(terraform -chdir=terraform/Account1/Kafka output -raw kafka_brokers)
+    FIRST_BROKER_HOST=$(echo "$KAFKA_BROKERS" | cut -d',' -f1 | cut -d':' -f1)
+    ELAPSED=0
+    echo -n "Waiting for Kafka brokers (retry)..."
   fi
   echo -n "."
   sleep 10
@@ -166,6 +183,7 @@ configure_kong_route() {
 
 configure_kong_route "prosumer-service"               "http://$PROSUMER_DNS:8080"        "/Prosumer"
 configure_kong_route "utilityoperator-service"        "http://$UTILITYOPERATOR_DNS:8080" "/UtilityOperator"
+configure_kong_route "gridzone-service"               "http://$UTILITYOPERATOR_DNS:8080" "/GridZone"
 configure_kong_route "assetlink-service"              "http://$ASSETLINK_DNS:8080"       "/AssetLink"
 configure_kong_route "telemetry-service"              "http://$TELEMETRY_DNS:8080"       "/Telemetry"
 configure_kong_route "flexibilityevent-service"       "http://$FLEXIBILITYEVENT_DNS:8080" "/FlexibilityEvent"

@@ -31,4 +31,29 @@ class TelemetryResourceTest {
             .when().post("/Telemetry/Consume")
             .then().statusCode(200);
     }
+
+    @Test
+    void deregisterConsumer_notRegistered_returns404() {
+        given()
+            .when().delete("/Telemetry/Consume/nonexistent-topic-junit")
+            .then().statusCode(404);
+    }
+
+    @Test
+    void deregisterConsumer_registered_returns204() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"TopicName\":\"test-deregister-topic\"}")
+            .when().post("/Telemetry/Consume")
+            .then().statusCode(200);
+
+        given()
+            .when().delete("/Telemetry/Consume/test-deregister-topic")
+            .then().statusCode(204);
+
+        // Second deregister returns 404 — thread already removed
+        given()
+            .when().delete("/Telemetry/Consume/test-deregister-topic")
+            .then().statusCode(404);
+    }
 }

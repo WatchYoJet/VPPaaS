@@ -1,4 +1,7 @@
 #!/bin/bash
+exec > /tmp/startup.log 2>&1
+set -xe
+
 sudo service docker start
 sudo docker login -u "${docker_username}" -p "${docker_password}"
 
@@ -9,4 +12,4 @@ sudo docker run -d --name utilityoperator -p 8080:8080 \
   -e QUARKUS_DATASOURCE_REACTIVE_URL="mysql://${rds_address}:${rds_port}/${db_name}" \
   "${docker_username}/utilityoperator:1.0.0-SNAPSHOT"
 
-echo "UtilityOperator deployed." >> /tmp/startup.log
+echo "UtilityOperator deployed."

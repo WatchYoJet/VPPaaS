@@ -1,0 +1,16 @@
+{
+  "components": [
+    {
+      "label": "The manager has reviewed your update request. Do you accept the outcome?",
+      "type": "checkbox",
+      "id": "Field_ConfirmUpdAccept",
+      "key": "accept"
+    }
+  ],
+  "type": "default",
+  "id": "Form_Confirm_ProsumerUpdate",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_UtilityOperatorDeletion" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:collaboration id="Collaboration_UtilityOperatorDeletion">
+    <bpmn:participant id="Participant_UtilityOperatorDeletion" name="Utility Operator Deletion" processRef="UtilityOperatorDeletion" />
+  </bpmn:collaboration>
+  <bpmn:process id="UtilityOperatorDeletion" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_UODel">
+      <bpmn:lane id="Lane_UODel_Initiator" name="Utility Operator - Initiator TK01">
+        <bpmn:flowNodeRef>Event_UODel_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_UODel_Request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_UODel_Confirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_UODel_Accept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_UODel_Cancelled</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_UODel_Executor" name="UtilityOperator Manager - Executor TK01">
+        <bpmn:flowNodeRef>Activity_UODel_Verify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_UODel_Promise</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_UODel_Decline</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_UODel_Delete</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_UODel_Declare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_UODel_Done</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Event_UODel_Start">
+      <bpmn:outgoing>Flow_UODel_Start_Request</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_UODel_Request" name="Request Utility Operator Deletion">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:assignmentDefinition assignee="demo" />
+        <zeebe:formDefinition formId="Form_Request_UtilityOperatorDel" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_UODel_Start_Request</bpmn:incoming>
+      <bpmn:outgoing>Flow_UODel_Request_Verify</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_UODel_Verify" name="Verify if Utility Operator Deletion is possible">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:assignmentDefinition assignee="demo" />
+        <zeebe:formDefinition formId="Form_Promise_UtilityOperatorDel" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_UODel_Request_Verify</bpmn:incoming>
+      <bpmn:outgoing>Flow_UODel_Verify_GWPromise</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_UODel_Promise" name="ok to delete?">
+      <bpmn:incoming>Flow_UODel_Verify_GWPromise</bpmn:incoming>
+      <bpmn:outgoing>Flow_UODel_Promise_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_UODel_Promise_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_UODel_Decline" name="Declined">
+      <bpmn:incoming>Flow_UODel_Promise_No</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_UODel_Confirm" name="Confirm Deletion order">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:assignmentDefinition assignee="demo" />
+        <zeebe:formDefinition formId="Form_Confirm_UtilityOperatorDel" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_UODel_Promise_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_UODel_Confirm_GWAccept</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_UODel_Accept" name="confirmed?">
+      <bpmn:incoming>Flow_UODel_Confirm_GWAccept</bpmn:incoming>
+      <bpmn:outgoing>Flow_UODel_Accept_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_UODel_Accept_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_UODel_Cancelled" name="Cancelled">
+      <bpmn:incoming>Flow_UODel_Accept_No</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Activity_UODel_Delete" name="Delete Utility Operator" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="12">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="DELETE" target="method" />
+          <zeebe:input source="=&quot;http://KONG_DNS_PLACEHOLDER:8000/UtilityOperator/&quot; + string(utilityOperatorID)" target="url" />
+          <zeebe:input source="={&#34;Content-Type&#34;:&#34;application/json&#34;,&#34;accept&#34;:&#34;application/json&#34;}" target="headers" />
+          <zeebe:input source="=20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=20" target="readTimeoutInSeconds" />
+          <zeebe:input source="=false" target="ignoreNullValues" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="12" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.HttpJson.v2" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_UODel_Accept_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_UODel_Delete_Declare</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Activity_UODel_Declare" name="Declare Utility Operator Deletion">
+      <bpmn:incoming>Flow_UODel_Delete_Declare</bpmn:incoming>
+      <bpmn:outgoing>Flow_UODel_Declare_End</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_UODel_Done" name="Deleted">
+      <bpmn:incoming>Flow_UODel_Declare_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_UODel_Start_Request" sourceRef="Event_UODel_Start" targetRef="Activity_UODel_Request" />
+    <bpmn:sequenceFlow id="Flow_UODel_Request_Verify" sourceRef="Activity_UODel_Request" targetRef="Activity_UODel_Verify" />
+    <bpmn:sequenceFlow id="Flow_UODel_Verify_GWPromise" sourceRef="Activity_UODel_Verify" targetRef="GW_UODel_Promise" />
+    <bpmn:sequenceFlow id="Flow_UODel_Promise_Yes" name="Yes" sourceRef="GW_UODel_Promise" targetRef="Activity_UODel_Confirm">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=promise = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_UODel_Promise_No" name="No" sourceRef="GW_UODel_Promise" targetRef="Event_UODel_Decline">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=promise = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_UODel_Confirm_GWAccept" sourceRef="Activity_UODel_Confirm" targetRef="GW_UODel_Accept" />
+    <bpmn:sequenceFlow id="Flow_UODel_Accept_Yes" name="Yes" sourceRef="GW_UODel_Accept" targetRef="Activity_UODel_Delete">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=accept = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_UODel_Accept_No" name="No" sourceRef="GW_UODel_Accept" targetRef="Event_UODel_Cancelled">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=accept = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_UODel_Delete_Declare" sourceRef="Activity_UODel_Delete" targetRef="Activity_UODel_Declare" />
+    <bpmn:sequenceFlow id="Flow_UODel_Declare_End" sourceRef="Activity_UODel_Declare" targetRef="Event_UODel_Done" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_UODel">
+    <bpmndi:BPMNPlane id="BPMNPlane_UODel" bpmnElement="Collaboration_UtilityOperatorDeletion">
+      <bpmndi:BPMNShape id="Participant_UtilityOperatorDeletion_di" bpmnElement="Participant_UtilityOperatorDeletion" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1150" height="340" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_UODel_Initiator_di" bpmnElement="Lane_UODel_Initiator" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1120" height="170" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_UODel_Executor_di" bpmnElement="Lane_UODel_Executor" isHorizontal="true">
+        <dc:Bounds x="190" y="250" width="1120" height="170" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_UODel_Start_di" bpmnElement="Event_UODel_Start">
+        <dc:Bounds x="242" y="147" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_UODel_Request_di" bpmnElement="Activity_UODel_Request">
+        <dc:Bounds x="330" y="125" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_UODel_Verify_di" bpmnElement="Activity_UODel_Verify">
+        <dc:Bounds x="480" y="295" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_UODel_Promise_di" bpmnElement="GW_UODel_Promise" isMarkerVisible="true">
+        <dc:Bounds x="635" y="310" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="618" y="367" width="84" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_UODel_Decline_di" bpmnElement="Event_UODel_Decline">
+        <dc:Bounds x="642" y="392" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="637" y="435" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_UODel_Confirm_di" bpmnElement="Activity_UODel_Confirm">
+        <dc:Bounds x="750" y="125" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_UODel_Accept_di" bpmnElement="GW_UODel_Accept" isMarkerVisible="true">
+        <dc:Bounds x="910" y="140" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="910" y="110" width="57" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_UODel_Cancelled_di" bpmnElement="Event_UODel_Cancelled">
+        <dc:Bounds x="1022" y="147" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1014" y="190" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_UODel_Delete_di" bpmnElement="Activity_UODel_Delete">
+        <dc:Bounds x="910" y="295" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_UODel_Declare_di" bpmnElement="Activity_UODel_Declare">
+        <dc:Bounds x="1070" y="295" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_UODel_Done_di" bpmnElement="Event_UODel_Done">
+        <dc:Bounds x="1232" y="317" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1229" y="360" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_UODel_Start_Request_di" bpmnElement="Flow_UODel_Start_Request">
+        <di:waypoint x="278" y="165" />
+        <di:waypoint x="330" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UODel_Request_Verify_di" bpmnElement="Flow_UODel_Request_Verify">
+        <di:waypoint x="380" y="205" />
+        <di:waypoint x="380" y="250" />
+        <di:waypoint x="530" y="250" />
+        <di:waypoint x="530" y="295" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UODel_Verify_GWPromise_di" bpmnElement="Flow_UODel_Verify_GWPromise">
+        <di:waypoint x="580" y="335" />
+        <di:waypoint x="635" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UODel_Promise_Yes_di" bpmnElement="Flow_UODel_Promise_Yes">
+        <di:waypoint x="660" y="310" />
+        <di:waypoint x="660" y="165" />
+        <di:waypoint x="750" y="165" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="666" y="237" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UODel_Promise_No_di" bpmnElement="Flow_UODel_Promise_No">
+        <di:waypoint x="660" y="360" />
+        <di:waypoint x="660" y="392" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="666" y="373" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UODel_Confirm_GWAccept_di" bpmnElement="Flow_UODel_Confirm_GWAccept">
+        <di:waypoint x="850" y="165" />
+        <di:waypoint x="910" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UODel_Accept_Yes_di" bpmnElement="Flow_UODel_Accept_Yes">
+        <di:waypoint x="935" y="190" />
+        <di:waypoint x="935" y="295" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="941" y="240" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UODel_Accept_No_di" bpmnElement="Flow_UODel_Accept_No">
+        <di:waypoint x="960" y="165" />
+        <di:waypoint x="1022" y="165" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="984" y="148" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UODel_Delete_Declare_di" bpmnElement="Flow_UODel_Delete_Declare">
+        <di:waypoint x="1010" y="335" />
+        <di:waypoint x="1070" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UODel_Declare_End_di" bpmnElement="Flow_UODel_Declare_End">
+        <di:waypoint x="1170" y="335" />
+        <di:waypoint x="1232" y="335" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

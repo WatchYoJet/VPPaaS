@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_AssetLinkHub" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="AssetLinkHub" name="Asset Link Hub" isExecutable="true">
+    <bpmn:startEvent id="Start_ALHub" name="Start">
+      <bpmn:outgoing>Flow_ALHub_toChoose</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_ALHub_ChooseOperation" name="Choose Asset Link Operation">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="Form_Select_ALOperation" />
+        <zeebe:assignmentDefinition assignee="demo" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ALHub_toChoose</bpmn:incoming>
+      <bpmn:outgoing>Flow_ALHub_toGW</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_ALHub_OperationChoice" name="Operation?">
+      <bpmn:incoming>Flow_ALHub_toGW</bpmn:incoming>
+      <bpmn:outgoing>Flow_ALHub_toCreate</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ALHub_toDelete</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_ALHub_Create" name="Create Asset Link">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="ProsumerForAssetLink" propagateAllChildVariables="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ALHub_toCreate</bpmn:incoming>
+      <bpmn:outgoing>Flow_ALHub_Create_toEnd</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_ALHub_Delete" name="Delete Asset Link">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="AssetLinkDeletion" propagateAllChildVariables="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ALHub_toDelete</bpmn:incoming>
+      <bpmn:outgoing>Flow_ALHub_Delete_toEnd</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_ALHub" name="End">
+      <bpmn:incoming>Flow_ALHub_Create_toEnd</bpmn:incoming>
+      <bpmn:incoming>Flow_ALHub_Delete_toEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ALHub_toChoose" sourceRef="Start_ALHub" targetRef="Task_ALHub_ChooseOperation" />
+    <bpmn:sequenceFlow id="Flow_ALHub_toGW" sourceRef="Task_ALHub_ChooseOperation" targetRef="GW_ALHub_OperationChoice" />
+    <bpmn:sequenceFlow id="Flow_ALHub_toCreate" name="create" sourceRef="GW_ALHub_OperationChoice" targetRef="Call_ALHub_Create">
+      <bpmn:conditionExpression>=operation = "create"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ALHub_toDelete" name="delete" sourceRef="GW_ALHub_OperationChoice" targetRef="Call_ALHub_Delete">
+      <bpmn:conditionExpression>=operation = "delete"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ALHub_Create_toEnd" sourceRef="Call_ALHub_Create" targetRef="End_ALHub" />
+    <bpmn:sequenceFlow id="Flow_ALHub_Delete_toEnd" sourceRef="Call_ALHub_Delete" targetRef="End_ALHub" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ALHub">
+    <bpmndi:BPMNPlane id="BPMNPlane_ALHub" bpmnElement="AssetLinkHub">
+      <bpmndi:BPMNShape id="Shape_Start_ALHub" bpmnElement="Start_ALHub">
+        <dc:Bounds x="152" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="158" y="235" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ALHub_ChooseOperation" bpmnElement="Task_ALHub_ChooseOperation">
+        <dc:Bounds x="240" y="170" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_ALHub_OperationChoice" bpmnElement="GW_ALHub_OperationChoice" isMarkerVisible="true">
+        <dc:Bounds x="455" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="450" y="242" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_ALHub_Create" bpmnElement="Call_ALHub_Create">
+        <dc:Bounds x="560" y="100" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_ALHub_Delete" bpmnElement="Call_ALHub_Delete">
+        <dc:Bounds x="560" y="270" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_ALHub" bpmnElement="End_ALHub">
+        <dc:Bounds x="782" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="789" y="235" width="22" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_ALHub_toChoose" bpmnElement="Flow_ALHub_toChoose">
+        <di:waypoint x="188" y="210" />
+        <di:waypoint x="240" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ALHub_toGW" bpmnElement="Flow_ALHub_toGW">
+        <di:waypoint x="400" y="210" />
+        <di:waypoint x="455" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ALHub_toCreate" bpmnElement="Flow_ALHub_toCreate">
+        <di:waypoint x="480" y="185" />
+        <di:waypoint x="480" y="140" />
+        <di:waypoint x="560" y="140" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="490" y="155" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ALHub_toDelete" bpmnElement="Flow_ALHub_toDelete">
+        <di:waypoint x="480" y="235" />
+        <di:waypoint x="480" y="310" />
+        <di:waypoint x="560" y="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="490" y="265" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ALHub_Create_toEnd" bpmnElement="Flow_ALHub_Create_toEnd">
+        <di:waypoint x="720" y="140" />
+        <di:waypoint x="800" y="140" />
+        <di:waypoint x="800" y="192" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ALHub_Delete_toEnd" bpmnElement="Flow_ALHub_Delete_toEnd">
+        <di:waypoint x="720" y="310" />
+        <di:waypoint x="800" y="310" />
+        <di:waypoint x="800" y="228" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

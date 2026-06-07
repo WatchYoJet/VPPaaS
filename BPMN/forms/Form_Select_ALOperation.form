@@ -1,0 +1,21 @@
+{
+  "components": [
+    {
+      "label": "Operation",
+      "type": "select",
+      "id": "Field_SelectALOp",
+      "key": "operation",
+      "values": [
+        { "label": "Create Asset Link", "value": "create" },
+        { "label": "Delete Asset Link", "value": "delete" }
+      ],
+      "validate": { "required": true }
+    }
+  ],
+  "type": "default",
+  "id": "Form_Select_ALOperation",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

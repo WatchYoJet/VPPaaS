@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_ProsumerHub" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="ProsumerHub" name="Prosumer Hub" isExecutable="true">
+    <bpmn:startEvent id="Start_Hub" name="Start">
+      <bpmn:outgoing>Flow_Hub_toChoose</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_ChooseOperation" name="Choose Prosumer Operation">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="Form_Select_Operation" />
+        <zeebe:assignmentDefinition assignee="demo" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Hub_toChoose</bpmn:incoming>
+      <bpmn:outgoing>Flow_Hub_toGW</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_OperationChoice" name="Operation?">
+      <bpmn:incoming>Flow_Hub_toGW</bpmn:incoming>
+      <bpmn:outgoing>Flow_Hub_toCreate</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Hub_toUpdate</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Hub_toDelete</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_CreateProsumer" name="Create Prosumer">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="ProsumerCreationInitiator" propagateAllChildVariables="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Hub_toCreate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Create_toEnd</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_UpdateProsumer" name="Update Prosumer">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="ProsumerUpdateInitiator" propagateAllChildVariables="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Hub_toUpdate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Update_toEnd</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_DeleteProsumer" name="Delete Prosumer">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="ProsumerDeletionInitiator" propagateAllChildVariables="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Hub_toDelete</bpmn:incoming>
+      <bpmn:outgoing>Flow_Delete_toEnd</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Hub" name="End">
+      <bpmn:incoming>Flow_Create_toEnd</bpmn:incoming>
+      <bpmn:incoming>Flow_Update_toEnd</bpmn:incoming>
+      <bpmn:incoming>Flow_Delete_toEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Hub_toChoose" sourceRef="Start_Hub" targetRef="Task_ChooseOperation" />
+    <bpmn:sequenceFlow id="Flow_Hub_toGW" sourceRef="Task_ChooseOperation" targetRef="GW_OperationChoice" />
+    <bpmn:sequenceFlow id="Flow_Hub_toCreate" name="create" sourceRef="GW_OperationChoice" targetRef="Call_CreateProsumer">
+      <bpmn:conditionExpression>=operation = "create"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Hub_toUpdate" name="update" sourceRef="GW_OperationChoice" targetRef="Call_UpdateProsumer">
+      <bpmn:conditionExpression>=operation = "update"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Hub_toDelete" name="delete" sourceRef="GW_OperationChoice" targetRef="Call_DeleteProsumer">
+      <bpmn:conditionExpression>=operation = "delete"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Create_toEnd" sourceRef="Call_CreateProsumer" targetRef="End_Hub" />
+    <bpmn:sequenceFlow id="Flow_Update_toEnd" sourceRef="Call_UpdateProsumer" targetRef="End_Hub" />
+    <bpmn:sequenceFlow id="Flow_Delete_toEnd" sourceRef="Call_DeleteProsumer" targetRef="End_Hub" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ProsumerHub">
+      <bpmndi:BPMNShape id="Shape_Start_Hub" bpmnElement="Start_Hub">
+        <dc:Bounds x="152" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="158" y="265" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ChooseOperation" bpmnElement="Task_ChooseOperation">
+        <dc:Bounds x="240" y="200" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_OperationChoice" bpmnElement="GW_OperationChoice" isMarkerVisible="true">
+        <dc:Bounds x="455" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="450" y="272" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_CreateProsumer" bpmnElement="Call_CreateProsumer">
+        <dc:Bounds x="560" y="100" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_UpdateProsumer" bpmnElement="Call_UpdateProsumer">
+        <dc:Bounds x="560" y="200" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_DeleteProsumer" bpmnElement="Call_DeleteProsumer">
+        <dc:Bounds x="560" y="300" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Hub" bpmnElement="End_Hub">
+        <dc:Bounds x="782" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="789" y="265" width="22" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_Hub_toChoose" bpmnElement="Flow_Hub_toChoose">
+        <di:waypoint x="188" y="240" />
+        <di:waypoint x="240" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Hub_toGW" bpmnElement="Flow_Hub_toGW">
+        <di:waypoint x="400" y="240" />
+        <di:waypoint x="455" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Hub_toCreate" bpmnElement="Flow_Hub_toCreate">
+        <di:waypoint x="480" y="215" />
+        <di:waypoint x="480" y="140" />
+        <di:waypoint x="560" y="140" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="490" y="172" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Hub_toUpdate" bpmnElement="Flow_Hub_toUpdate">
+        <di:waypoint x="505" y="240" />
+        <di:waypoint x="560" y="240" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="521" y="222" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Hub_toDelete" bpmnElement="Flow_Hub_toDelete">
+        <di:waypoint x="480" y="265" />
+        <di:waypoint x="480" y="340" />
+        <di:waypoint x="560" y="340" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="490" y="296" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Create_toEnd" bpmnElement="Flow_Create_toEnd">
+        <di:waypoint x="720" y="140" />
+        <di:waypoint x="800" y="140" />
+        <di:waypoint x="800" y="222" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Update_toEnd" bpmnElement="Flow_Update_toEnd">
+        <di:waypoint x="720" y="240" />
+        <di:waypoint x="782" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Delete_toEnd" bpmnElement="Flow_Delete_toEnd">
+        <di:waypoint x="720" y="340" />
+        <di:waypoint x="800" y="340" />
+        <di:waypoint x="800" y="258" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

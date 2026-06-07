@@ -44,7 +44,7 @@ class TelemetrySimulatorTest {
 
         // Strip OUTSIDE:// or similar listener-name prefix that DevServices adds
         String brokerList = kafkaBootstrap.contains("://") ? kafkaBootstrap.replaceFirst("^[^/]+://", "") : kafkaBootstrap;
-        System.out.println("[TelemetrySimulatorTest] kafkaBootstrap=" + kafkaBootstrap + " → brokerList=" + brokerList);
+        System.out.println("[TelemetrySimulatorTest] kafkaBootstrap=" + kafkaBootstrap + " - brokerList=" + brokerList);
 
         // Give the consumer thread time to connect and subscribe before producing
         Thread.sleep(3000);

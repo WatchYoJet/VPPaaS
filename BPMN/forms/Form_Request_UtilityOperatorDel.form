@@ -1,0 +1,17 @@
+{
+  "components": [
+    {
+      "label": "Utility Operator ID",
+      "type": "number",
+      "id": "Field_DelUOId",
+      "key": "utilityOperatorID",
+      "validate": { "required": true }
+    }
+  ],
+  "type": "default",
+  "id": "Form_Request_UtilityOperatorDel",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

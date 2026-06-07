@@ -1,1 +1,1 @@
-kong_admin_url = "http://ec2-100-31-135-239.compute-1.amazonaws.com:8001"
+kong_admin_url = "http://ec2-98-92-83-103.compute-1.amazonaws.com:8001"

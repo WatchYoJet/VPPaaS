@@ -1,0 +1,47 @@
+{
+  "components": [
+    {
+      "label": "Recommendations",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_recs",
+        "columns": null
+      },
+      "id": "Field_gb_recommendations",
+      "key": "recommendations",
+      "readonly": true,
+      "rows": 6
+    },
+    {
+      "label": "Selected Recommendation ID",
+      "type": "number",
+      "layout": {
+        "row": "Row_selId",
+        "columns": null
+      },
+      "id": "Field_gb_selId",
+      "key": "selectedRecommendationId",
+      "defaultValue": null
+    },
+    {
+      "label": "Accept recommendation",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_accept",
+        "columns": null
+      },
+      "id": "Field_gb_accept",
+      "key": "accept",
+      "defaultValue": true
+    }
+  ],
+  "type": "default",
+  "id": "Form_Review_GridBalancing",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  },
+  "schemaVersion": 19
+}

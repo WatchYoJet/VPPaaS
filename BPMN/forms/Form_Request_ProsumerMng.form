@@ -32,6 +32,28 @@
       "id": "Field_1ykgxfy",
       "key": "location",
       "description": "Prosumer Location"
+    },
+    {
+      "label": "Location Postal Code",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_postalcode",
+        "columns": null
+      },
+      "id": "Field_postalcode",
+      "key": "locationPostalCode",
+      "description": "e.g. 1400 (Belém), 1990 (Parque das Nações)"
+    },
+    {
+      "label": "Payment Details",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_payment",
+        "columns": null
+      },
+      "id": "Field_payment",
+      "key": "paymentDetails",
+      "description": "e.g. IBAN-PT50..."
     }
   ],
   "type": "default",

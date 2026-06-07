@@ -1,0 +1,22 @@
+{
+  "components": [
+    {
+      "label": "Operation",
+      "type": "select",
+      "id": "Field_SelectOp",
+      "key": "operation",
+      "values": [
+        { "label": "Create Prosumer", "value": "create" },
+        { "label": "Update Prosumer", "value": "update" },
+        { "label": "Delete Prosumer", "value": "delete" }
+      ],
+      "validate": { "required": true }
+    }
+  ],
+  "type": "default",
+  "id": "Form_Select_Operation",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

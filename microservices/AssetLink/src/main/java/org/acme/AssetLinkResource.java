@@ -97,9 +97,23 @@ public class AssetLinkResource {
     @DELETE
     @Path("{id}")
     public Uni<Response> delete(Long id) {
-        return AssetLink.delete(client, id)
-                .onItem().transform(deleted -> deleted ? Response.Status.NO_CONTENT : Response.Status.NOT_FOUND)
-                .onItem().transform(status -> Response.status(status).build());
+        return AssetLink.findById(client, id)
+            .onItem().transformToUni(al -> {
+                if (al == null)
+                    return Uni.createFrom().item(Response.status(Response.Status.NOT_FOUND).build());
+                return client.preparedQuery("SELECT name FROM UtilityOperator WHERE id = ?")
+                    .execute(Tuple.of(al.idUtilityOperator))
+                    .onItem().transformToUni(rows -> {
+                        String opName = rows.iterator().next().getString("name");
+                        String topicName = al.id + "-" + opName;
+                        deleteKafkaTopic(topicName);
+                        deregisterTelemetryConsumer(topicName);
+                        return AssetLink.delete(client, id)
+                            .onItem().transform(deleted ->
+                                deleted ? Response.status(Response.Status.NO_CONTENT).build()
+                                        : Response.status(Response.Status.NOT_FOUND).build());
+                    });
+            });
     }
 
     @PUT
@@ -121,6 +135,16 @@ public class AssetLinkResource {
         }
     }
 
+    private void deleteKafkaTopic(String topicName) {
+        Properties props = new Properties();
+        props.put("bootstrap.servers", kafkaServers);
+        try (AdminClient admin = AdminClient.create(props)) {
+            admin.deleteTopics(Collections.singleton(topicName)).all().get();
+        } catch (Exception e) {
+            System.out.println("Kafka topic deletion failed: " + e.getMessage());
+        }
+    }
+
     private void registerTelemetryConsumer(String topicName) {
         try {
             HttpClient http = HttpClient.newHttpClient();
@@ -133,6 +157,19 @@ public class AssetLinkResource {
             http.send(req, HttpResponse.BodyHandlers.ofString());
         } catch (Exception e) {
             System.out.println("Telemetry consumer registration failed: " + e.getMessage());
+        }
+    }
+
+    private void deregisterTelemetryConsumer(String topicName) {
+        try {
+            HttpClient http = HttpClient.newHttpClient();
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(telemetryUrl + "/Telemetry/Consume/" + topicName))
+                    .DELETE()
+                    .build();
+            http.send(req, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            System.out.println("Telemetry consumer deregistration failed: " + e.getMessage());
         }
     }
 }

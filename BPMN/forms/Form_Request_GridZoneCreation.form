@@ -1,0 +1,50 @@
+{
+  "components": [
+    {
+      "label": "Utility Operator ID",
+      "type": "number",
+      "id": "Field_GZ_UOId",
+      "key": "utilityOperatorId",
+      "description": "ID of the utility operator that owns this zone",
+      "validate": { "required": true }
+    },
+    {
+      "label": "Zone Name",
+      "type": "textfield",
+      "id": "Field_GZ_Name",
+      "key": "name",
+      "description": "e.g. Belém, Parque das Nações",
+      "validate": { "required": true }
+    },
+    {
+      "label": "Max Capacity (kW)",
+      "type": "number",
+      "id": "Field_GZ_MaxCapacity",
+      "key": "maxCapacity",
+      "description": "Maximum energy capacity in kilowatts",
+      "validate": { "required": true }
+    },
+    {
+      "label": "Safety Threshold (kW)",
+      "type": "number",
+      "id": "Field_GZ_SafetyThreshold",
+      "key": "safetyThreshold",
+      "description": "Load level (kW) above which the zone is considered stressed",
+      "validate": { "required": true }
+    },
+    {
+      "label": "Postal Code",
+      "type": "textfield",
+      "id": "Field_GZ_PostalCode",
+      "key": "postalCode",
+      "description": "Used to detect neighbouring zones for grid balancing",
+      "validate": { "required": true }
+    }
+  ],
+  "type": "default",
+  "id": "Form_Request_GridZoneCreation",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
+  "schemaVersion": 19
+}

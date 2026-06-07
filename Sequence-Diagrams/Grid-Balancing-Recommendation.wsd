@@ -1,40 +1,42 @@
 title Grid Balancing Recommendation Business Process
 
-VPPaaS->Camunda: Trigger Grid Balancing Analysis
-Camunda->Kong: Forward Request
-Kong->Grid Service: Forward Request
-activate Grid Service
+actor Operator
+participant Camunda
+participant Kong
+participant "Grid Balancing Service" as Grid
+participant Database
+participant Kafka
 
-Grid Service->Telemetry Service: Get latest telemetry data
-activate Telemetry Service
-Telemetry Service->Database: Query latest telemetry grouped by zone
-Database-->Telemetry Service: Zone readings (SoC, power per asset)
-Telemetry Service-->Grid Service: Response
-deactivate Telemetry Service
+Operator->Camunda: Start process\n(proceed: confirmed)
 
-Grid Service->Utility Service: Get Grid Zone config
-activate Utility Service
-Utility Service->Database: Query GridZone\n(maxCapacity, boundaries,\nsafetyThreshold, postalCode)
-Database-->Utility Service: GridZone records
-Utility Service-->Grid Service: Response
-deactivate Utility Service
+Camunda->Kong: POST /GridBalancing/recommend
+Kong->Grid: Forward Request
+activate Grid
 
-Grid Service->AssetLink Service: Get active AssetLinks
-activate AssetLink Service
-AssetLink Service->Database: Query active links
-Database-->AssetLink Service: AssetLink records
-AssetLink Service-->Grid Service: Response
-deactivate AssetLink Service
+Grid->Database: Query Telemetry, GridZone\nand AssetLink data
+Database-->Grid: Zone readings, zone config,\nactive links
 
-note right of Grid Service: Detect deficit/surplus zones\nIf zone load > safetyThreshold (per-zone, default 80% maxCapacity):\nfind neighbouring zone with surplus\n(neighbours = postal codes differing by ≤1)
+note right of Grid: Compute net_load per zone\nIdentify deficit / surplus pairs\n(neighbouring postal codes, ≤1 apart)
 
-Grid Service->Database: INSERT INTO GridBalancingRecommendations\n(deficitZoneId, surplusZoneId, recommendedActionKw, timestamp)
-Database-->Grid Service: OK
+Grid->Database: INSERT recommendations\n(deficitZoneId, surplusZoneId, recommendedActionKw)
+Database-->Grid: OK (recommendation IDs)
 
-Grid Service->Kafka: Publish Recommendation
-note right of Kafka: Topic = grid-balancing-recommendation
+Grid->Kafka: Publish to\ngrid-balancing-recommendation topic
 
-Grid Service-->Kong: Response
-deactivate Grid Service
+Grid-->Kong: 200 OK — recommendations list\n[{id, deficitZoneId, surplusZoneId, recommendedActionKw}]
+deactivate Grid
 Kong-->Camunda: Forward Response
-Camunda-->VPPaaS: Forward Response
+
+
+Camunda->Operator: Show recommendations\n(pick selectedRecommendationId, accept: true/false)
+Operator->Camunda: Submit decision
+
+alt accept = true
+  Camunda->Kong: POST /GridBalancing/act/{selectedRecommendationId}
+  note right of Kong: Moves a prosumer AssetLink\nfrom surplus zone to deficit zone\n(see Grid-Balancing-Act diagram)
+  Kong-->Camunda: 200 OK — action summary
+  Camunda->Operator: Confirm action executed
+  Operator->Camunda: Confirm
+else accept = false
+  note right of Camunda: Process ends — Recommendation Rejected
+end

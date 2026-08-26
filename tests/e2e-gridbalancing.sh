@@ -99,9 +99,9 @@ echo "     Response: $(echo "$CONSUME_RESP" | head -1)"
 echo "     Status  : $(echo "$CONSUME_RESP" | tail -1)"
 CONSUME_CODE=$(echo "$CONSUME_RESP" | tail -1 | grep -oP '\d+')
 if [ "$CONSUME_CODE" = "200" ] || [ "$CONSUME_CODE" = "204" ]; then
-  pass "Consumer registered — Kafka messages on 1-ArcoCegoLisbon will be persisted to DB"
+  pass "Consumer registered - Kafka messages on 1-ArcoCegoLisbon will be persisted to DB"
 else
-  fail "Telemetry/Consume HTTP $CONSUME_CODE (may already be registered — continuing)"
+  fail "Telemetry/Consume HTTP $CONSUME_CODE (may already be registered - continuing)"
 fi
 sleep 2
 
@@ -184,9 +184,9 @@ EX_COUNT=$(echo "$TELEMETRY" | grep -c '"E2E-LISBON-EX"' || true)
 SO_COUNT=$(echo "$TELEMETRY" | grep -c '"E2E-LISBON-SO"' || true)
 echo ""
 if [ "$EX_COUNT" -gt 0 ] && [ "$SO_COUNT" -gt 0 ]; then
-  pass "E2E-LISBON-EX: $EX_COUNT row(s)  |  E2E-LISBON-SO: $SO_COUNT row(s)  — both zones have telemetry"
+  pass "E2E-LISBON-EX: $EX_COUNT row(s)  |  E2E-LISBON-SO: $SO_COUNT row(s)  - both zones have telemetry"
 else
-  fail "Missing telemetry — E2E-LISBON-EX=$EX_COUNT, E2E-LISBON-SO=$SO_COUNT"
+  fail "Missing telemetry - E2E-LISBON-EX=$EX_COUNT, E2E-LISBON-SO=$SO_COUNT"
 fi
 
 # Step 8: Trigger recommendation
@@ -303,8 +303,8 @@ printf   "  ║   PASS: %-3s   FAIL: %-3s       ║\n" "$PASS" "$FAIL"
 echo "  ╚══════════════════════════════════╝"
 echo ""
 if [ "$FAIL" -eq 0 ]; then
-  echo "  All tests passed — Grid Balancing recommendation pipeline is working end-to-end."
+  echo "  All tests passed - Grid Balancing recommendation pipeline is working end-to-end."
 else
-  echo "  Some tests FAILED — see output above for details."
+  echo "  Some tests FAILED - see output above for details."
   exit 1
 fi

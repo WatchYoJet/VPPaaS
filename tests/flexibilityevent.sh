@@ -22,7 +22,7 @@ if [ "$count" -gt 0 ]; then
     echo "$response" | grep -q "\"id\":$id" || { echo "Test failed: event not found by ID"; exit 1; }
   fi
 else
-  echo "(No events generated — no BATTERY/SOLAR telemetry conditions met; trigger endpoint is healthy)"
+  echo "(No events generated - no BATTERY/SOLAR telemetry conditions met; trigger endpoint is healthy)"
 fi
 
 echo "All tests passed successfully!"

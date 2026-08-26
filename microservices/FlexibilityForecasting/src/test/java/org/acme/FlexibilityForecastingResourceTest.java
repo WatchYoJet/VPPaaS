@@ -12,7 +12,7 @@ class FlexibilityForecastingResourceTest {
 
     @Test
     void forecast_respondsWithJson() {
-        // FlexibilityEvent and Ollama are unavailable in test — falls back to generic prompt
+        // FlexibilityEvent and Ollama are unavailable in test - falls back to generic prompt
         // then fails on Ollama call, returns 500 with structured error
         given()
             .when().post("/FlexibilityForecasting/forecast")

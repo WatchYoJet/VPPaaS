@@ -62,7 +62,7 @@ if [ "$TELEMETRY_COUNT" -gt 0 ]; then
   echo "[PASS] Telemetry"
   PASS=$((PASS + 1))
 else
-  echo "[FAIL] Telemetry — no events found after simulator run"
+  echo "[FAIL] Telemetry - no events found after simulator run"
   FAIL=$((FAIL + 1))
 fi
 
@@ -83,7 +83,7 @@ MODEL_READY=$(curl -s "http://$OLLAMA_DNS:11434/api/tags" | python3 -c \
 if [ "$MODEL_READY" = "yes" ]; then
   run "Forecast" "$TESTS/forecast.sh"
 else
-  echo "[SKIP] Forecast — llama3.2 not loaded on Ollama yet"
+  echo "[SKIP] Forecast - llama3.2 not loaded on Ollama yet"
   echo "       Pull it with: curl -X POST http://$OLLAMA_DNS:11434/api/pull -d '{\"name\":\"llama3.2\"}'"
   SKIP=$((SKIP + 1))
 fi

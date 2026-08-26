@@ -1,6 +1,6 @@
 # Asset Link Deletion
 
-Single-pool, two-lane process for deleting an asset link. The executor reviews the request before the initiator confirms — the DELETE only fires after both approve. Deleting an asset link also removes the associated Kafka topic and stops the Telemetry consumer thread, so there is no reverting after the fact.
+Single-pool, two-lane process for deleting an asset link. The executor reviews the request before the initiator confirms - the DELETE only fires after both approve. Deleting an asset link also removes the associated Kafka topic and stops the Telemetry consumer thread, so there is no reverting after the fact.
 
 **Process ID:** `AssetLinkDeletion`
 
@@ -21,13 +21,13 @@ Single-pool, two-lane process for deleting an asset link. The executor reviews t
 ### Executor lane
 
 2. **Verify if Asset Link Deletion is possible:** review the request and decide (`promise` checkbox).
-   - `promise = false`: **Declined** end event — process ends, nothing deleted.
+   - `promise = false`: **Declined** end event - process ends, nothing deleted.
    - `promise = true`: hand back to initiator for final confirmation.
 
 ### Initiator lane
 
 3. **Confirm Deletion order:** decide whether to proceed (`accept` checkbox).
-   - `accept = false`: **Cancelled** end event — process ends, nothing deleted.
+   - `accept = false`: **Cancelled** end event - process ends, nothing deleted.
    - `accept = true`: hand to executor to execute the deletion.
 
 ### Executor lane

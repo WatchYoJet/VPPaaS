@@ -10,6 +10,6 @@ echo "POST /compute: $response"
 
 response=$(curl -s -X GET "$API_URL" -H 'accept: application/json')
 echo "GET all energy analytics after compute: $response"
-[ "$response" = "[]" ] && { echo "No analytics generated — ensure telemetry data exists first"; exit 1; }
+[ "$response" = "[]" ] && { echo "No analytics generated - ensure telemetry data exists first"; exit 1; }
 
 echo "All tests passed successfully!"

@@ -26,7 +26,7 @@ class FlexibilityEventResourceTest {
 
     @Test
     void trigger_respondsWithJson() {
-        // Telemetry is unavailable in test — trigger returns 500 with structured error
+        // Telemetry is unavailable in test - trigger returns 500 with structured error
         given()
             .when().post("/FlexibilityEvent/trigger")
             .then()

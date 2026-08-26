@@ -12,6 +12,6 @@ mvn test -pl microservices/FlexibilityForecasting
 
 ## Test cases
 
-### POST /FlexibilityForecasting/forecast — responds with JSON
+### POST /FlexibilityForecasting/forecast - responds with JSON
 
 Triggers a forecast request. Because Ollama is unreachable in the test environment, the endpoint returns HTTP 500 with a structured JSON error body. The test verifies the response is JSON and is not null.

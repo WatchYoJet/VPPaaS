@@ -51,7 +51,7 @@ class TelemetryResourceTest {
             .when().delete("/Telemetry/Consume/test-deregister-topic")
             .then().statusCode(204);
 
-        // Second deregister returns 404 — thread already removed
+        // Second deregister returns 404 - thread already removed
         given()
             .when().delete("/Telemetry/Consume/test-deregister-topic")
             .then().statusCode(404);

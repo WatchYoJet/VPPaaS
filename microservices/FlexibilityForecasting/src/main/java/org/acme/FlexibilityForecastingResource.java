@@ -37,7 +37,7 @@ public class FlexibilityForecastingResource {
                     .connectTimeout(Duration.ofSeconds(5))
                     .build();
 
-            // Fetch past flexibility events — fall back to generic prompt if unreachable
+            // Fetch past flexibility events - fall back to generic prompt if unreachable
             StringBuilder prompt = new StringBuilder(
                 "Analyse the following VPP flexibility events and forecast upcoming events in 2 sentences:\n"
             );

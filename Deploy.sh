@@ -30,7 +30,7 @@ KAFKA_SG_ID=$(aws ec2 describe-security-groups \
   --query 'SecurityGroups[0].GroupId' \
   --output text 2>/dev/null || true)
 if [ -n "$KAFKA_SG_ID" ] && [ "$KAFKA_SG_ID" != "None" ]; then
-  echo "Found existing Kafka SG $KAFKA_SG_ID — importing into state..."
+  echo "Found existing Kafka SG $KAFKA_SG_ID - importing into state..."
   terraform -chdir=terraform/Account1/Kafka import aws_security_group.instance "$KAFKA_SG_ID" 2>/dev/null || true
 fi
 
@@ -43,7 +43,7 @@ ELAPSED=0
 until nc -zw 3 "$FIRST_BROKER_HOST" 9092 2>/dev/null; do
   if [ $ELAPSED -ge 300 ]; then
     echo ""
-    echo "Kafka not ready after 5 minutes — re-provisioning cluster setup..."
+    echo "Kafka not ready after 5 minutes - re-provisioning cluster setup..."
     terraform -chdir=terraform/Account1/Kafka apply -auto-approve \
       -replace='null_resource.kafkaClusterSetup[0]' \
       -replace='null_resource.kafkaClusterSetup[1]' \

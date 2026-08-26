@@ -42,7 +42,7 @@ alt promise = true
     VPPaaS-->Camunda: Declare (deleted)
   else accept = false
     Camunda-->VPPaaS: Decline
-    note right of VPPaaS: Deletion cancelled — record unchanged
+    note right of VPPaaS: Deletion cancelled - record unchanged
   end
 
 else promise = false

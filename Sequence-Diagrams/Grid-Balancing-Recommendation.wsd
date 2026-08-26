@@ -23,7 +23,7 @@ Database-->Grid: OK (recommendation IDs)
 
 Grid->Kafka: Publish to\ngrid-balancing-recommendation topic
 
-Grid-->Kong: 200 OK — recommendations list\n[{id, deficitZoneId, surplusZoneId, recommendedActionKw}]
+Grid-->Kong: 200 OK - recommendations list\n[{id, deficitZoneId, surplusZoneId, recommendedActionKw}]
 deactivate Grid
 Kong-->Camunda: Forward Response
 
@@ -34,9 +34,9 @@ Operator->Camunda: Submit decision
 alt accept = true
   Camunda->Kong: POST /GridBalancing/act/{selectedRecommendationId}
   note right of Kong: Moves a prosumer AssetLink\nfrom surplus zone to deficit zone\n(see Grid-Balancing-Act diagram)
-  Kong-->Camunda: 200 OK — action summary
+  Kong-->Camunda: 200 OK - action summary
   Camunda->Operator: Confirm action executed
   Operator->Camunda: Confirm
 else accept = false
-  note right of Camunda: Process ends — Recommendation Rejected
+  note right of Camunda: Process ends - Recommendation Rejected
 end

@@ -7,14 +7,14 @@ ROOT="$SCRIPT_DIR/.."
 ENV_FILE="$ROOT/account1-addresses.env"
 
 if [ ! -f "$ENV_FILE" ]; then
-  echo "[get-addresses] ERROR: $ENV_FILE not found — has Deploy.sh been run?" >&2
+  echo "[get-addresses] ERROR: $ENV_FILE not found - has Deploy.sh been run?" >&2
   return 1
 fi
 
 source "$ENV_FILE"
 
 if [ -z "$PROSUMER_DNS" ] || [ -z "$KONG_DNS" ]; then
-  echo "[get-addresses] ERROR: addresses incomplete — re-run Deploy.sh" >&2
+  echo "[get-addresses] ERROR: addresses incomplete - re-run Deploy.sh" >&2
   return 1
 fi
 

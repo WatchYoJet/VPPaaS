@@ -8,21 +8,21 @@ Unit and integration tests for the Telemetry microservice using QuarkusTest and 
 mvn test -pl microservices/Telemetry
 ```
 
-## Test cases — TelemetryResourceTest
+## Test cases - TelemetryResourceTest
 
-### GET /Telemetry — returns 200 with JSON list
+### GET /Telemetry - returns 200 with JSON list
 
 Verifies that the list endpoint returns HTTP 200 and a JSON array. The database starts empty, so an empty array is expected.
 
-### GET /Telemetry/{id} — unknown ID returns 404
+### GET /Telemetry/{id} - unknown ID returns 404
 
 Requests ID 99999. Verifies HTTP 404.
 
-### POST /Telemetry/Consume — starts consumer and returns 200
+### POST /Telemetry/Consume - starts consumer and returns 200
 
 Registers a consumer for the topic `test-topic-junit`. Verifies HTTP 200. A background `DynamicTopicConsumer` thread is started for the given topic.
 
-## Test cases — TelemetrySimulatorTest
+## Test cases - TelemetrySimulatorTest
 
 This test verifies the full end-to-end telemetry ingestion path: Simulator - Kafka - Telemetry service - Database.
 

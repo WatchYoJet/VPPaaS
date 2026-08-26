@@ -36,7 +36,7 @@ create_ami() {
     --query 'Instances[0].InstanceId' \
     --output text)
 
-  echo "Instance ID: $INSTANCE_ID — waiting for running..."
+  echo "Instance ID: $INSTANCE_ID - waiting for running..."
   aws ec2 wait instance-running --instance-ids "$INSTANCE_ID"
 
   local PUBLIC_DNS
@@ -71,7 +71,7 @@ create_ami() {
     --query 'ImageId' \
     --output text)
 
-  echo "AMI ID: $AMI_ID — waiting for availability (2-5 min)..."
+  echo "AMI ID: $AMI_ID - waiting for availability (2-5 min)..."
   aws ec2 wait image-available --image-ids "$AMI_ID"
   echo "AMI ready!"
 

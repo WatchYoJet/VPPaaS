@@ -51,7 +51,7 @@ SSH keys go in the project root: `labsuser.pem` (Account 1), `labsuser2.pem` (Ac
 # 1. Build and push all microservices to Docker Hub
 bash Build.sh
 
-# 2. Create base AMIs (once per AWS session — saves AMI IDs to amis.env)
+# 2. Create base AMIs (once per AWS session - saves AMI IDs to amis.env)
 bash CreateAMI.sh
 
 # 3. Deploy all infrastructure and services
@@ -87,7 +87,7 @@ bash tests/prosumer.sh
 bash tests/utilityoperator.sh
 bash tests/gridzone.sh
 bash tests/assetlink.sh
-bash tests/telemetry.sh          # populates Kafka — run before analytics tests
+bash tests/telemetry.sh          # populates Kafka - run before analytics tests
 bash tests/energyanalytics.sh
 bash tests/flexibilityevent.sh
 bash tests/gridbalancing.sh

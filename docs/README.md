@@ -19,7 +19,7 @@ API documentation for each microservice. All endpoints are exposed through Kong 
 
 ## BPMN Processes
 
-Camunda 8 process documentation. All processes run on C8Run — Tasklist on `/tasklist`, Operate on `/operate`, login `demo`/`demo`.
+Camunda 8 process documentation. All processes run on C8Run - Tasklist on `/tasklist`, Operate on `/operate`, login `demo`/`demo`.
 
 | Process | Description |
 |---------|-------------|

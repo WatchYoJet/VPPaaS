@@ -29,7 +29,7 @@ if [ -n "$id" ]; then
   echo "GET telemetry event by ID $id: $response"
   echo "$response" | grep -q "\"id\":$id" || { echo "Test failed: telemetry not found by ID"; exit 1; }
 else
-  echo "No telemetry events yet — simulator may need more time or Kafka brokers may still be starting"
+  echo "No telemetry events yet - simulator may need more time or Kafka brokers may still be starting"
   exit 1
 fi
 

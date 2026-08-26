@@ -19,7 +19,7 @@ class EnergyAnalyticsResourceTest {
 
     @Test
     void compute_respondsWithJson() {
-        // Telemetry is unavailable in test — compute returns 500 with structured error
+        // Telemetry is unavailable in test - compute returns 500 with structured error
         given()
             .when().post("/EnergyAnalytics/compute")
             .then()

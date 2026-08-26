@@ -8,7 +8,7 @@ fi
 source amis.env
 
 # ============================================================
-# ACCOUNT 2 — destroy first (depends on Account 1 infra)
+# ACCOUNT 2 - destroy first (depends on Account 1 infra)
 # ============================================================
 source access2.sh
 
@@ -37,7 +37,7 @@ terraform -chdir=terraform/Account2/Konga init -reconfigure
 terraform -chdir=terraform/Account2/Konga destroy -auto-approve
 
 # ============================================================
-# ACCOUNT 1 — microservices first, then infrastructure
+# ACCOUNT 1 - microservices first, then infrastructure
 # ============================================================
 source access.sh
 

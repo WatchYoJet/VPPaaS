@@ -57,7 +57,7 @@ class AssetLinkResourceTest {
 
     @Test
     void createAndDelete_fullLifecycle_returns201Then204() {
-        // Create — Kafka topic creation and Telemetry registration fail silently (best-effort)
+        // Create - Kafka topic creation and Telemetry registration fail silently (best-effort)
         String location = given()
             .contentType(ContentType.JSON)
             .body("{\"idProsumer\":9001,\"idUtilityOperator\":77}")
@@ -71,7 +71,7 @@ class AssetLinkResourceTest {
         given().when().get("/AssetLink/" + id)
             .then().statusCode(200);
 
-        // Delete — Kafka topic deletion and Telemetry deregistration fail silently (best-effort)
+        // Delete - Kafka topic deletion and Telemetry deregistration fail silently (best-effort)
         given().when().delete("/AssetLink/" + id)
             .then().statusCode(204);
 

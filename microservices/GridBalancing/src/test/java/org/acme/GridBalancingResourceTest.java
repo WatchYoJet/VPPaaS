@@ -20,7 +20,7 @@ class GridBalancingResourceTest {
     @Test
     void recommend_respondsWithJson() {
         // External services (Telemetry, UtilityOperator, AssetLink) are unavailable in test
-        // — recommend returns 500 with structured error
+        // - recommend returns 500 with structured error
         given()
             .when().post("/GridBalancing/recommend")
             .then()

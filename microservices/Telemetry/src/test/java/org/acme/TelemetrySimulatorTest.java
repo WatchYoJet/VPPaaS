@@ -33,7 +33,7 @@ class TelemetrySimulatorTest {
     @Test
     void simulator_populatesTelemetryViaKafka() throws Exception {
         assumeTrue(Files.exists(SIMULATOR_JAR),
-            "VPPaaSSimulator.jar not found at " + SIMULATOR_JAR.toAbsolutePath() + " — skipping");
+            "VPPaaSSimulator.jar not found at " + SIMULATOR_JAR.toAbsolutePath() + " - skipping");
 
         // Register a Kafka consumer for the simulator's topic
         given()
@@ -81,6 +81,6 @@ class TelemetrySimulatorTest {
         sim.destroy();
 
         assertTrue(count > 0,
-            "No telemetry events found after simulator run — check Kafka DevServices connectivity");
+            "No telemetry events found after simulator run - check Kafka DevServices connectivity");
     }
 }

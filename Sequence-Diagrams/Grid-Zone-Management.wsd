@@ -32,7 +32,7 @@ alt promise = true
     VPPaaS-->Camunda: Declare (done)
   else accept = false
     Camunda-->VPPaaS: Decline
-    note right of VPPaaS: Operation cancelled — data unchanged
+    note right of VPPaaS: Operation cancelled - data unchanged
   end
 
 else promise = false

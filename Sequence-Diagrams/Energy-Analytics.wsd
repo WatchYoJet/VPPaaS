@@ -17,10 +17,10 @@ note right of Analytics Service: Aggregate:\n- Energy Discharged by Zone\n- Gene
 Analytics Service->Database: INSERT INTO EnergyAnalytics\n(analyticsType, dimensionKey, value, timestamp)
 Database-->Analytics Service: OK
 
-Analytics Service->Kafka: Publish — energy-discharged-by-zone
-Analytics Service->Kafka: Publish — generated-energy-by-prosumer
-Analytics Service->Kafka: Publish — consumed-energy-by-prosumer
-Analytics Service->Kafka: Publish — average-soc
+Analytics Service->Kafka: Publish - energy-discharged-by-zone
+Analytics Service->Kafka: Publish - generated-energy-by-prosumer
+Analytics Service->Kafka: Publish - consumed-energy-by-prosumer
+Analytics Service->Kafka: Publish - average-soc
 
 Analytics Service-->Kong: Response
 deactivate Analytics Service
